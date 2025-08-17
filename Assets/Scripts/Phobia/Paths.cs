@@ -7,19 +7,32 @@
 public static class Paths
 {
 	public static string levelImage(string level, string image)
-		=> $"Images/{level}/{image}";
+	{
+		return $"Images/{level}/{image}";
+	}
 
 	public static string levelSound(string level, string sound)
-		=> $"Sounds/{level}/{sound}";
+	{
+		return $"Sounds/{level}/{sound}";
+	}
 
 	public static string levelMusic(string level, string song)
-		=> $"Music/{level}/{song}";
+	{
+		return $"Music/{level}/{song}";
+	}
 
 	public static string levelData(string level, string file)
-		=> $"Data/{level}/{file}";
+	{
+		return $"Data/{level}/{file}";
+	}
 
 	public static string levelModel(string level, string model)
-		=> $"Models/{level}/{model}";
+	{
+		return $"Models/{level}/{model}";
+	}
+
 	public static string levelMat(string level, string mat)
-		=> $"Mats/{level}/{mat}";
+	{
+		return $"Mats/{level}/{mat}";
+	}
 }

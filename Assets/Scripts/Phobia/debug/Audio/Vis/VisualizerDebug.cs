@@ -5,7 +5,7 @@ namespace Phobia.debug.Audio.Vis
 {
 	public class VisualizerDebug : MonoBehaviour
 	{
-		void OnDrawGizmos()
+		private void OnDrawGizmos()
 		{
 			PhobiaVis vis = GetComponent<PhobiaVis>();
 			if (vis == null)

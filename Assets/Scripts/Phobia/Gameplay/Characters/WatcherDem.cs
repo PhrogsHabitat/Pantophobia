@@ -29,7 +29,7 @@ public class WatcherDem : MonoBehaviour
 	[SerializeField] private Texture2D _darkTexture;
 	[Range(0, 1)][SerializeField] private float _swapAmount;
 
-	void Awake()
+	private void Awake()
 	{
 		_renderer = GetComponent<SpriteRenderer>();
 		_basePosition = transform.position;
@@ -55,8 +55,15 @@ public class WatcherDem : MonoBehaviour
 		StartIdleAnim();
 	}
 
-	public void ShowOutline() => SetSwapAmount(1f);
-	public void ShowNormal() => SetSwapAmount(0f);
+	public void ShowOutline()
+	{
+		SetSwapAmount(1f);
+	}
+
+	public void ShowNormal()
+	{
+		SetSwapAmount(0f);
+	}
 
 	private void SetSwapAmount(float amount)
 	{
@@ -144,7 +151,7 @@ public class WatcherDem : MonoBehaviour
 		StopAllCoroutines();
 	}
 
-	void Update()
+	private void Update()
 	{
 		HandleDebugInput();
 		UpdateBasePosition();
@@ -200,7 +207,7 @@ public class WatcherDem : MonoBehaviour
 		}
 	}
 
-	void OnDestroy()
+	private void OnDestroy()
 	{
 		if (_swapMaterial != null)
 		{

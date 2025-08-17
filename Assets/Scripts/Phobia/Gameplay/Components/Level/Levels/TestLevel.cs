@@ -1,3 +1,8 @@
+using Phobia.Audio;
+using Phobia.Graphics;
+using Phobia.Input;
+using UnityEngine;
+
 namespace Phobia.Gameplay.Components.Level.Levels
 {
     public class TestLevel : LevelBase

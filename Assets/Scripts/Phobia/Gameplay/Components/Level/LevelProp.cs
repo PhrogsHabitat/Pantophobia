@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using Phobia.Graphics;
+using UnityEngine;
 
 namespace Phobia.Gameplay.Components.Level
 {

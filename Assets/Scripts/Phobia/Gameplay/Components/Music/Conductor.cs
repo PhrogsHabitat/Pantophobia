@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 
+using Phobia.Audio;
+
+using UnityEngine;
+
 namespace Phobia.Gameplay.Components.Music
 {
     /// <summary>
@@ -431,9 +435,12 @@ namespace Phobia.Gameplay.Components.Music
             return (last.beatTime * 4f) + (lastSectionTime / stepCrochet);
         }
 
-        public float BeatToSeconds(float beat) => GetStepTimeInMs(beat * 4f) / 1000f;
+		public float BeatToSeconds(float beat)
+		{
+			return GetStepTimeInMs(beat * 4f) / 1000f;
+		}
 
-        public float GetStepTimeInMs(float step)
+		public float GetStepTimeInMs(float step)
         {
             for (int i = 0; i < timeChanges.Count - 1; i++)
             {

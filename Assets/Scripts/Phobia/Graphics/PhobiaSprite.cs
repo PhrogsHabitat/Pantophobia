@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.U2D;
 
 namespace Phobia.Graphics
 {
@@ -135,11 +137,11 @@ namespace Phobia.Graphics
         private Coroutine _fadeCoroutine;
         private Coroutine _colorTweenCoroutine;
 
-        #endregion
+		#endregion
 
-        #region Unity Lifecycle
+		#region Unity Lifecycle
 
-        void Awake()
+		private void Awake()
         {
             _renderer = GetComponent<SpriteRenderer>();
             _animator = GetComponent<Animator>();
@@ -407,29 +409,38 @@ namespace Phobia.Graphics
             }
         }
 
-        #endregion
+		#endregion
 
-        #region Visual Effects
+		#region Visual Effects
 
-        /// <summary>
-        /// Fade out sprite
-        /// </summary>
-        public void FadeOut(float duration) => StartFade(0, duration);
+		/// <summary>
+		/// Fade out sprite
+		/// </summary>
+		public void FadeOut(float duration)
+		{
+			StartFade(0, duration);
+		}
 
-        /// <summary>
-        /// Fade in sprite
-        /// </summary>
-        public void FadeIn(float duration) => StartFade(1, duration);
+		/// <summary>
+		/// Fade in sprite
+		/// </summary>
+		public void FadeIn(float duration)
+		{
+			StartFade(1, duration);
+		}
 
-        /// <summary>
-        /// Fade to specific alpha value
-        /// </summary>
-        public void FadeTo(float targetAlpha, float duration) => StartFade(targetAlpha, duration);
+		/// <summary>
+		/// Fade to specific alpha value
+		/// </summary>
+		public void FadeTo(float targetAlpha, float duration)
+		{
+			StartFade(targetAlpha, duration);
+		}
 
-        /// <summary>
-        /// Start fade operation with proper coroutine management
-        /// </summary>
-        private void StartFade(float targetAlpha, float duration)
+		/// <summary>
+		/// Start fade operation with proper coroutine management
+		/// </summary>
+		private void StartFade(float targetAlpha, float duration)
         {
             if (!_config.enableFading)
             {

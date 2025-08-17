@@ -1,3 +1,7 @@
+using Phobia.Audio;
+using Phobia.Audio.Vis;
+using Phobia.Gameplay;
+using Phobia.Input;
 using UnityEngine;
 
 namespace Phobia.ui.Menu.Offset
@@ -6,7 +10,6 @@ namespace Phobia.ui.Menu.Offset
     {
         private PhobiaVis visualizer;
         private PhobiaSound _mainMusic;
-        private PlayerControlsSave _controlsSave;
 
         public override void CreateUI()
         {
@@ -25,9 +28,7 @@ namespace Phobia.ui.Menu.Offset
                 return;
             }
 
-            // Initialize the save system
-            _controlsSave = PlayerControlsSave.Instance;
-            Debug.Log("[OFFSET] PlayerControlsSave initialized");
+            Debug.Log("[OFFSET] Controls system ready");
 
             // Add offset menu specific actions using Controls with save integration
             AddOrUpdateAction("offsetBars4", "<Keyboard>/1");
@@ -116,20 +117,16 @@ namespace Phobia.ui.Menu.Offset
                 Debug.Log("- Now using unified Controls system with save support! 🎮");
 
                 // Show save system integration info
-                if (_controlsSave != null)
-                {
-                    Debug.Log("\nControls Save System Info:");
-                    Debug.Log($"- PlayerControlsSave initialized: {_controlsSave != null}");
-                    Debug.Log($"- Auto-save bindings: {_controlsSave.Preferences.autoSaveBindings}");
-                    Debug.Log($"- Total saved actions: {_controlsSave.GetAllActionNames().Count}");
+                Debug.Log("\nControls Save System Info:");
+                Debug.Log($"- Auto-save bindings: {Controls.Preferences.autoSaveBindings}");
+                Debug.Log($"- Total saved actions: {Controls.GetAllActionNames().Count}");
 
-                    // Show current bindings for offset actions
-                    var offsetActions = new[] { "offsetBars4", "offsetBars8", "offsetDebug", "offsetSpectrum" };
-                    foreach (var action in offsetActions)
-                    {
-                        var bindings = _controlsSave.GetKeyBindings(action);
-                        Debug.Log($"- {action}: {string.Join(", ", bindings)}");
-                    }
+                // Show current bindings for offset actions
+                var offsetActions = new[] { "offsetBars4", "offsetBars8", "offsetDebug", "offsetSpectrum" };
+                foreach (var action in offsetActions)
+                {
+                    var bindings = Controls.GetKeyBindings(action);
+                    Debug.Log($"- {action}: {string.Join(", ", bindings)}");
                 }
             }
 
@@ -177,13 +174,9 @@ namespace Phobia.ui.Menu.Offset
         {
             // Add to the runtime Controls system
             Controls.AddAction(actionName, bindings);
-
-            // Save the binding to PlayerControlsSave for persistence
-            if (_controlsSave != null)
-            {
-                _controlsSave.SetKeyBindings(actionName, bindings);
-                Debug.Log($"[OFFSET] Saved binding for '{actionName}': {string.Join(", ", bindings)}");
-            }
+            // Save the binding for persistence
+            Controls.SetKeyBindings(actionName, bindings);
+            Debug.Log($"[OFFSET] Saved binding for '{actionName}': {string.Join(", ", bindings)}");
         }
 
         /// <summary>
@@ -194,29 +187,21 @@ namespace Phobia.ui.Menu.Offset
         {
             Debug.Log("=== OFFSET CONTROLS SAVE/LOAD TEST ===");
 
-            if (_controlsSave == null)
-            {
-                Debug.LogError("[OFFSET] PlayerControlsSave not initialized");
-                return;
-            }
-
             // Test getting saved bindings
-            var bars4Bindings = _controlsSave.GetKeyBindings("offsetBars4");
+            var bars4Bindings = Controls.GetKeyBindings("offsetBars4");
             Debug.Log($"[OFFSET] Saved bindings for 'offsetBars4': {string.Join(", ", bars4Bindings)}");
 
             // Test changing a binding
             Debug.Log("[OFFSET] Changing offsetBars4 binding to F1...");
-            _controlsSave.SetKeyBindings("offsetBars4", "<Keyboard>/f1");
+            Controls.SetKeyBindings("offsetBars4", "<Keyboard>/f1");
 
             // Verify the change
-            var newBindings = _controlsSave.GetKeyBindings("offsetBars4");
+            var newBindings = Controls.GetKeyBindings("offsetBars4");
             Debug.Log($"[OFFSET] New bindings for 'offsetBars4': {string.Join(", ", newBindings)}");
 
             // Reset to default
-            Debug.Log("[OFFSET] Resetting to default...");
-            _controlsSave.ResetActionToDefault("offsetBars4");
-
-            var resetBindings = _controlsSave.GetKeyBindings("offsetBars4");
+            Controls.ResetActionToDefault("offsetBars4");
+            var resetBindings = Controls.GetKeyBindings("offsetBars4");
             Debug.Log($"[OFFSET] Reset bindings for 'offsetBars4': {string.Join(", ", resetBindings)}");
 
             Debug.Log("=== OFFSET CONTROLS SAVE/LOAD TEST COMPLETE ===");

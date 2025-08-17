@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Phobia.Input
 {
@@ -36,37 +38,48 @@ namespace Phobia.Input
             public bool enableCaching = true;
             public int maxCacheSize = 100;
 
-            public static InputConfig CreateDefault() => new InputConfig
-            {
-                controlScheme = "PhobiaKeyboard",
-                autoEnable = true,
-                dontDestroyOnLoad = true,
-                autoCreateDefaultActions = true,
-                enableBuffering = true,
-                bufferSeconds = 0.15f,
-                enableDeadzone = true,
-                deadzoneThreshold = 0.2f,
-                lockAndHideCursor = false,
-                enableDebugLogging = false,
-                enableCaching = true,
-                maxCacheSize = 100
-            };
-            public static InputConfig CreateUIFriendly() => new InputConfig
-            {
-                lockAndHideCursor = false,
-                enableBuffering = true,
-                bufferSeconds = 0.1f,
-                autoCreateDefaultActions = true
-            };
-            public static InputConfig CreateGaming() => new InputConfig
-            {
-                enableDeadzone = true,
-                deadzoneThreshold = 0.15f,
-                enableBuffering = true,
-                bufferSeconds = 0.12f,
-                autoCreateDefaultActions = true
-            };
-        }
+			public static InputConfig CreateDefault()
+			{
+				return new InputConfig
+				{
+					controlScheme = "PhobiaKeyboard",
+					autoEnable = true,
+					dontDestroyOnLoad = true,
+					autoCreateDefaultActions = true,
+					enableBuffering = true,
+					bufferSeconds = 0.15f,
+					enableDeadzone = true,
+					deadzoneThreshold = 0.2f,
+					lockAndHideCursor = false,
+					enableDebugLogging = false,
+					enableCaching = true,
+					maxCacheSize = 100
+				};
+			}
+
+			public static InputConfig CreateUIFriendly()
+			{
+				return new InputConfig
+				{
+					lockAndHideCursor = false,
+					enableBuffering = true,
+					bufferSeconds = 0.1f,
+					autoCreateDefaultActions = true
+				};
+			}
+
+			public static InputConfig CreateGaming()
+			{
+				return new InputConfig
+				{
+					enableDeadzone = true,
+					deadzoneThreshold = 0.15f,
+					enableBuffering = true,
+					bufferSeconds = 0.12f,
+					autoCreateDefaultActions = true
+				};
+			}
+		}
 
         #endregion
 
@@ -120,10 +133,17 @@ namespace Phobia.Input
                 }
             }
 
-            private void OnStarted(InputAction.CallbackContext context) => UpdateBoolState(true);
-            private void OnCanceled(InputAction.CallbackContext context) => UpdateBoolState(false);
+			private void OnStarted(InputAction.CallbackContext context)
+			{
+				UpdateBoolState(true);
+			}
 
-            private void UpdateBoolState(bool pressed)
+			private void OnCanceled(InputAction.CallbackContext context)
+			{
+				UpdateBoolState(false);
+			}
+
+			private void UpdateBoolState(bool pressed)
             {
                 _wasPressed = _isPressed;
                 _isPressed = pressed;
@@ -131,40 +151,58 @@ namespace Phobia.Input
                 _justReleased = !_isPressed && _wasPressed;
             }
 
-            /// <summary>
-            /// Check if input is currently being held
-            /// </summary>
-            public bool CheckPressed() => _isPressed;
+			/// <summary>
+			/// Check if input is currently being held
+			/// </summary>
+			public bool CheckPressed()
+			{
+				return _isPressed;
+			}
 
-            /// <summary>
-            /// Check if input was just pressed this frame
-            /// </summary>
-            public bool CheckJustPressed() => _justPressed;
+			/// <summary>
+			/// Check if input was just pressed this frame
+			/// </summary>
+			public bool CheckJustPressed()
+			{
+				return _justPressed;
+			}
 
-            /// <summary>
-            /// Check if input was just released this frame
-            /// </summary>
-            public bool CheckJustReleased() => _justReleased;
+			/// <summary>
+			/// Check if input was just released this frame
+			/// </summary>
+			public bool CheckJustReleased()
+			{
+				return _justReleased;
+			}
 
-            /// <summary>
-            /// Default check behavior (just pressed)
-            /// </summary>
-            public bool Check() => CheckJustPressed();
+			/// <summary>
+			/// Default check behavior (just pressed)
+			/// </summary>
+			public bool Check()
+			{
+				return CheckJustPressed();
+			}
 
-            /// <summary>
-            /// Get Vector2 value for movement inputs
-            /// </summary>
-            public Vector2 GetVector2() => _vector2Value;
+			/// <summary>
+			/// Get Vector2 value for movement inputs
+			/// </summary>
+			public Vector2 GetVector2()
+			{
+				return _vector2Value;
+			}
 
-            /// <summary>
-            /// Get float value for analog inputs
-            /// </summary>
-            public float GetFloat() => _floatValue;
+			/// <summary>
+			/// Get float value for analog inputs
+			/// </summary>
+			public float GetFloat()
+			{
+				return _floatValue;
+			}
 
-            /// <summary>
-            /// Update frame-based state (call once per frame)
-            /// </summary>
-            public void UpdateFrame()
+			/// <summary>
+			/// Update frame-based state (call once per frame)
+			/// </summary>
+			public void UpdateFrame()
             {
                 // Reset frame-based flags
                 _justPressed = false;
@@ -317,11 +355,11 @@ namespace Phobia.Input
         // Movement (Vector2)
         public Vector2 MOVE => _move?.GetVector2() ?? Vector2.zero;
 
-        #endregion
+		#endregion
 
-        #region Unity Lifecycle
+		#region Unity Lifecycle
 
-        void Awake()
+		private void Awake()
         {
             if (Instance != null && Instance != this)
             {
@@ -332,7 +370,7 @@ namespace Phobia.Input
             _activeInputs.Add(this);
         }
 
-        void OnEnable()
+		private void OnEnable()
         {
             if (_actionMap == null)
             {
@@ -344,7 +382,7 @@ namespace Phobia.Input
             }
         }
 
-        void Start()
+		private void Start()
         {
             if (Config.dontDestroyOnLoad)
             {
@@ -357,12 +395,12 @@ namespace Phobia.Input
             }
         }
 
-        void OnDisable()
+		private void OnDisable()
         {
             _actionMap?.Disable();
         }
 
-        void Update()
+		private void Update()
         {
             Debug.Log("[DEBUG] PhobiaInput Update called");
             // Update all actions frame-based state
@@ -372,7 +410,7 @@ namespace Phobia.Input
             }
         }
 
-        void OnDestroy()
+		private void OnDestroy()
         {
             // Dispose all actions
             foreach (var action in _actions.Values)
@@ -579,13 +617,23 @@ namespace Phobia.Input
 
         public PhobiaAction AddAction(string actionName, params string[] bindings)
         {
-            var action = new InputAction(actionName);
+            // Remove existing action if present
+            if (_actions.ContainsKey(actionName))
+            {
+                _actions[actionName].Dispose();
+                _actions.Remove(actionName);
+            }
+            // Disable before modifying
+            _actionMap.Disable();
+            var action = _actionMap.AddAction(actionName, InputActionType.Button);
             foreach (var binding in bindings)
             {
                 action.AddBinding(binding);
             }
-            _actions[actionName] = new PhobiaAction(actionName, action);
-            return _actions[actionName];
+            _actionMap.Enable();
+            var phobiaAction = new PhobiaAction(actionName, action);
+            _actions[actionName] = phobiaAction;
+            return phobiaAction;
         }
 
         public bool CheckPressed(string actionName)

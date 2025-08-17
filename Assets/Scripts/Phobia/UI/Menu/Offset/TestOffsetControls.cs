@@ -1,3 +1,6 @@
+using Phobia.Input;
+using UnityEngine;
+
 namespace Phobia.ui.Menu.Offset
 {
     /// <summary>
@@ -49,16 +52,10 @@ namespace Phobia.ui.Menu.Offset
                 Debug.Log($"✓ Controls.IsReady: {Controls.IsReady}");
                 Debug.Log($"✓ Controls.GetActionCount(): {Controls.GetActionCount()}");
 
-                // Test 2: Check PlayerControlsSave
-                Debug.Log("Test 2: Checking PlayerControlsSave...");
-                var controlsSave = PlayerControlsSave.Instance;
-                Debug.Log($"✓ PlayerControlsSave initialized: {controlsSave != null}");
-
-                if (controlsSave != null)
-                {
-                    Debug.Log($"✓ Total saved actions: {controlsSave.GetAllActionNames().Count}");
-                    Debug.Log($"✓ Auto-save enabled: {controlsSave.Preferences.autoSaveBindings}");
-                }
+                // Test 2: Check Controls save data
+                Debug.Log("Test 2: Checking Controls save data...");
+                Debug.Log($"✓ Total saved actions: {Controls.GetAllActionNames().Count}");
+                Debug.Log($"✓ Auto-save enabled: {Controls.Preferences?.autoSaveBindings}");
 
                 // Test 3: Check offset-specific actions
                 Debug.Log("Test 3: Checking offset-specific actions...");
@@ -73,55 +70,11 @@ namespace Phobia.ui.Menu.Offset
                 {
                     bool exists = Controls.HasAction(action);
                     Debug.Log($"✓ Action '{action}' exists: {exists}");
-
-                    if (controlsSave != null)
-                    {
-                        var bindings = controlsSave.GetKeyBindings(action);
-                        Debug.Log($"  - Saved bindings: {string.Join(", ", bindings)}");
-                    }
                 }
-
-                // Test 4: Test binding modification
-                Debug.Log("Test 4: Testing binding modification...");
-                if (controlsSave != null)
-                {
-                    // Save original binding
-                    var originalBindings = controlsSave.GetKeyBindings("offsetTestSave");
-                    Debug.Log($"✓ Original 'offsetTestSave' bindings: {string.Join(", ", originalBindings)}");
-
-                    // Change binding
-                    controlsSave.SetKeyBindings("offsetTestSave", "<Keyboard>/f11");
-                    var newBindings = controlsSave.GetKeyBindings("offsetTestSave");
-                    Debug.Log($"✓ Modified 'offsetTestSave' bindings: {string.Join(", ", newBindings)}");
-
-                    // Restore original
-                    if (originalBindings.Count > 0)
-                    {
-                        controlsSave.SetKeyBindings("offsetTestSave", originalBindings.ToArray());
-                        Debug.Log("✓ Restored original bindings");
-                    }
-                    else
-                    {
-                        controlsSave.ResetActionToDefault("offsetTestSave");
-                        Debug.Log("✓ Reset to default bindings");
-                    }
-                }
-
-                // Test 5: Test input detection
-                Debug.Log("Test 5: Testing input detection...");
-                Debug.Log("✓ Input detection test - press keys to see if they're detected:");
-                Debug.Log("  - Press 1-5 to test bar count changes");
-                Debug.Log("  - Press D to test debug info");
-                Debug.Log("  - Press S to test spectrum debug");
-                Debug.Log("  - Press T to test save/load functionality");
-                Debug.Log("  - Press Enter/Space to test accept action");
-
-                Debug.Log("✓ ALL OFFSET CONTROLS TESTS PASSED!");
             }
-            catch (System.Exception e)
+            catch (System.Exception ex)
             {
-                Debug.LogError($"✗ OFFSET CONTROLS TEST FAILED: {e.Message}");
-                Debug.LogError($"Stack trace: {e.StackTrace}");
+                Debug.LogError($"[OFFSET TEST] Exception: {ex.Message}");
             }
 
             Debug.Log("=== OFFSET CONTROLS INTEGRATION TEST COMPLETE ===");

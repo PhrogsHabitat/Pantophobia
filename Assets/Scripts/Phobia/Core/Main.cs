@@ -1,5 +1,6 @@
 using UnityEngine;
 using Controls = Phobia.Input.Controls;
+using Phobia.Gameplay;
 
 namespace Phobia.Core
 {
@@ -18,29 +19,15 @@ namespace Phobia.Core
             Debug.Log("[MAIN] Starting initialization...");
 
             // Registries auto-initialize via attribute
-            var save = PhobiaSave.Instance;
-            if (save == null)
-            {
-                Debug.LogError("[MAIN] PhobiaSave.Instance is null. Attempting to load save data.");
-                save = PhobiaSave.LoadSaveData();
-            }
-            Debug.Log($"[MAIN] PhobiaSave.Instance: {(save != null ? "Valid" : "Null")}");
-
-            if (save.Player == null)
-            {
-                Debug.LogError("[MAIN] SaveData.Player is null. Initializing default player data.");
-                save.Data.player = new PhobiaSave.PlayerData();
-            }
-            Debug.Log($"[MAIN] SaveData.Player: {(save.Player != null ? "Valid" : "Null")}");
 
             Controls.Initialize();
             Debug.Log($"[MAIN] Controls.IsReady: {Controls.IsReady}");
 
-            EnsurePlayState(save);
+            EnsurePlayState();
             Debug.Log("[MAIN] Initialization complete");
         }
 
-        private static void EnsurePlayState(PhobiaSave save)
+    private static void EnsurePlayState()
         {
             if (Object.FindFirstObjectByType<PlayState>() != null)
             {
@@ -51,10 +38,7 @@ namespace Phobia.Core
             var playState = go.AddComponent<PlayState>();
 
             // Load initial scene
-            var initialState = !string.IsNullOrEmpty(save.Player.lastPlayedLevel)
-                ? save.Player.lastPlayedLevel
-                : Constants.INIT_STATE;
-
+            var initialState = Constants.INIT_STATE;
             playState.LoadScene(initialState);
         }
     }

@@ -6,7 +6,7 @@ using System.Linq;
 
 public class ModelTextureAutoAssigner : AssetPostprocessor
 {
-	void OnPreprocessModel()
+	private void OnPreprocessModel()
 	{
 		if (!assetPath.ToLower().EndsWith(".fbx"))
 		{
@@ -19,7 +19,7 @@ public class ModelTextureAutoAssigner : AssetPostprocessor
 		importer.materialLocation = ModelImporterMaterialLocation.External;
 	}
 
-	void OnPostprocessModel(GameObject g)
+	private void OnPostprocessModel(GameObject g)
 	{
 		if (!assetPath.ToLower().EndsWith(".fbx"))
 		{

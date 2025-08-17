@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Phobia.Camera
 {
@@ -110,11 +111,11 @@ namespace Phobia.Camera
         private Queue<RenderTexture> texturePool = new Queue<RenderTexture>();
         private List<RenderTexture> grabbedTextures = new List<RenderTexture>();
 
-        #endregion
+		#endregion
 
-        #region Unity Lifecycle
+		#region Unity Lifecycle
 
-        void Awake()
+		private void Awake()
         {
             _camera = GetComponent<UnityEngine.Camera>();
 
@@ -125,7 +126,7 @@ namespace Phobia.Camera
             }
         }
 
-        void Start()
+		private void Start()
         {
             InitializeMaterials();
         }
@@ -246,7 +247,7 @@ namespace Phobia.Camera
             texturePool.Enqueue(rt);
         }
 
-        void LateUpdate()
+		private void LateUpdate()
         {
             foreach (var rt in grabbedTextures)
             {
@@ -255,7 +256,7 @@ namespace Phobia.Camera
             grabbedTextures.Clear();
         }
 
-        void OnDestroy()
+		private void OnDestroy()
         {
             if (blendMaterial != null)
             {

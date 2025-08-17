@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Phobia.Gameplay.Components.Music;
+using UnityEngine;
 
 namespace Phobia.Gameplay.Components.Level
 {

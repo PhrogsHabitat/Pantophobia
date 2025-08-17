@@ -8,13 +8,13 @@ public class MovementStuff : MonoBehaviour
 
 	public int swag;
 
-	void Start()
+	private void Start()
 	{
 		swag = 0;
 	}
 
 	// Update is called once per frame
-	void Update()
+	private void Update()
 	{
 		Trace.WriteLine("This is a trace message.");
 	}

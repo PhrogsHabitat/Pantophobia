@@ -10,7 +10,7 @@ namespace Phobia
 		/// <summary>
 		/// Initial state identifier (must be registered in UIRegistry)
 		/// </summary>
-		public const string INIT_STATE = "OffsetMenu";
+		public const string INIT_STATE = "TestLevel";
 
 		/// <summary>
 		/// Target framerate for the game

@@ -1,3 +1,6 @@
+using Phobia.Audio;
+using UnityEngine;
+
 public class SpatialAudioDemo : MonoBehaviour
 {
     public AudioClip testSound;
@@ -8,7 +11,7 @@ public class SpatialAudioDemo : MonoBehaviour
     private PhobiaSound _spatialSound;
     private Vector3 _startPosition;
 
-    void start()
+	private void start()
     {
         _startPosition = movingObject.transform.position;
 
@@ -26,7 +29,7 @@ public class SpatialAudioDemo : MonoBehaviour
                   "- F: Fade out/in");
     }
 
-    void Update()
+	private void Update()
     {
         // Move object with keyboard
         float newX = _startPosition.x + Mathf.PingPong(Time.time * moveSpeed, moveRange) - moveRange / 2;
@@ -68,7 +71,7 @@ public class SpatialAudioDemo : MonoBehaviour
         }
     }
 
-    void OnDrawGizmos()
+	private void OnDrawGizmos()
     {
         if (!Application.isPlaying)
         {
