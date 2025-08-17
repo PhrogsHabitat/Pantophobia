@@ -1,0 +1,24 @@
+{
+    "levelId": "offsetMenu",
+    "displayName": "Offset Config",
+    "defaultZoom": 2.0,
+    "bgColor": {"r": 0.1, "g": 0.1, "b": 0.3, "a": 1.0},
+    "songId": "SillyTest",
+    "bpm": 155,
+    "songSigNum": 4,
+    "songSigDenum": 4,
+    "timeChanges": [
+        {
+            "timeMs": 0,
+            "bpm": 155,
+            "numerator": 4,
+            "denominator": 4
+        },
+        {
+            "timeMs": 60000,
+            "bpm": 155,
+            "numerator": 4,
+            "denominator": 4
+        }
+    ]
+}

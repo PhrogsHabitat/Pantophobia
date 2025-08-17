@@ -1,0 +1,278 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39fa3d8997a24136984ca6e2c99902bc, type: 3}
+  m_Name: PhobiaInputActions
+  m_EditorClassIdentifier: 
+  m_ActionMaps:
+  - m_Name: Gameplay
+    m_Id: 
+    m_Asset: {fileID: 11400000}
+    m_Actions:
+    - m_Name: Move
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 3542de4e-4b60-4e1d-b9d2-8fb7c8e554a6
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: UI/Up
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 188770ac-1be5-4f0a-804a-7ccd5bdd85c4
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: UI/Down
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 9d2ad62d-93cc-441d-972c-f9c6fd9a4bd1
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: UI/Left
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 43a2999f-818f-45ba-9333-d1110e8c8b21
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: UI/Right
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 559ebf20-2dfc-4af0-bdf9-7b72ef1ded8b
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Note/Up
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: e74da080-0949-4fa7-b56f-6ef1d1ef5892
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Note/Down
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 9640ef21-96bd-46f4-9737-16a7ece14f5b
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Note/Left
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 9eefd7ff-5ddf-4fcd-9d40-31c3647deee7
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Note/Right
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: ef010353-708a-464d-b468-4e8ef252685a
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Actions/Accept
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 30baa404-2e9e-4abb-be68-b7e4cd4ae249
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Actions/Back
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: cb23b515-2be4-46c7-a195-00176453b4bb
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Actions/Pause
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: d1f627c4-2c2d-49cf-b23a-2a55d13d93bb
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Actions/Reset
+      m_Type: 1
+      m_ExpectedControlType: 
+      m_Id: 5bf3fa97-b4da-45f4-8aa7-5ab58f6daba2
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    - m_Name: Movement/Move
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: ce5e4c4f-3de9-4695-82ee-fbf3c8d7d016
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Bindings:
+    - m_Name: 2DVector
+      m_Id: 9328c876-b42c-461e-a610-898ee0974521
+      m_Path: 2DVector
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 4
+    - m_Name: Up
+      m_Id: 61df59ec-7414-4434-903f-245a48bb027a
+      m_Path: <Keyboard>/w
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Down
+      m_Id: f58ddc89-b605-45b1-ba80-0aa5a56e400a
+      m_Path: <Keyboard>/s
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Left
+      m_Id: a9603027-6f3e-4954-8089-0046d1e25f9d
+      m_Path: <Keyboard>/a
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: Right
+      m_Id: 9307028f-63f5-44e2-b55a-206876e27dce
+      m_Path: <Keyboard>/d
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move
+      m_Flags: 8
+    - m_Name: 
+      m_Id: 7a6d0132-a558-4809-82e0-2e64eb275800
+      m_Path: <Keyboard>/w
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: UI/Up
+      m_Flags: 0
+    - m_Name: 
+      m_Id: a86a90f1-f5ee-489a-a946-67ec404a7752
+      m_Path: <Keyboard>/s
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: UI/Down
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 71c146bd-4490-4f0d-b763-d863ac66f299
+      m_Path: <Keyboard>/a
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: UI/Left
+      m_Flags: 0
+    - m_Name: 
+      m_Id: f5419216-c4fd-4a91-a089-b01bfe69f493
+      m_Path: <Keyboard>/d
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: UI/Right
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 4c9d201a-a027-45b4-a911-d0753df9c8cd
+      m_Path: <Keyboard>/upArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Note/Up
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 002ecd9a-b525-4a8f-bdfc-c0f441d19fe3
+      m_Path: <Keyboard>/downArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Note/Down
+      m_Flags: 0
+    - m_Name: 
+      m_Id: edf1b664-e073-4db6-bae4-96e7142b1d03
+      m_Path: <Keyboard>/leftArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Note/Left
+      m_Flags: 0
+    - m_Name: 
+      m_Id: fe3af7a6-a6c2-4665-a648-9488e45bb06b
+      m_Path: <Keyboard>/rightArrow
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Note/Right
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 3f651dbd-1454-4591-9ba2-b12a863e7662
+      m_Path: <Keyboard>/enter
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Actions/Accept
+      m_Flags: 0
+    - m_Name: 
+      m_Id: a2ed8893-1df6-431c-a9a5-cdd60c7700d1
+      m_Path: <Keyboard>/escape
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Actions/Back
+      m_Flags: 0
+    - m_Name: 
+      m_Id: a0906541-9aae-405a-bb24-be7d7eb2eef8
+      m_Path: <Keyboard>/p
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Actions/Pause
+      m_Flags: 0
+    - m_Name: 
+      m_Id: 885bfdbf-5f41-4691-90f7-113c0ff4012c
+      m_Path: <Keyboard>/r
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Actions/Reset
+      m_Flags: 0
+    - m_Name: 
+      m_Id: c7838c65-3e8c-4d10-b096-57b5d002ba55
+      m_Path: <Gamepad>/leftStick
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Movement/Move
+      m_Flags: 0
+  m_ControlSchemes: []
+  m_IsProjectWide: 0

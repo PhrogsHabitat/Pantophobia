@@ -1,0 +1,18 @@
+[*.cs]
+
+# UNT0033: Incorrect message case
+dotnet_diagnostic.UNT0033.severity = none
+
+indent_style = tab
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+charset = utf-8
+
+# C# code style
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Braces
+csharp_prefer_braces = true:warning

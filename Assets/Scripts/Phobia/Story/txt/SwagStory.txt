@@ -1,0 +1,17 @@
+// General Structure
+
+============
+
+// Settings ->
+// Pre-Tutorial Scene || [Gameplay] [Cutscene] ->
+// Tutorial Scene (Interactive) ->
+// Falling Scene (Non-interactive) || [Hits Ground] ->
+
+// ...
+
+// Title Card
+
+============
+
+// Wake up Scene ->
+// Walking Scene (Interactive)
