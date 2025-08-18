@@ -19,8 +19,8 @@ namespace Phobia.Core
 
 		[Header("Screen Settings")]
 		public bool fullScreen = false;
-		public int screenWidth = 1920;
-		public int screenHeight = 1080;
+		public int screenWidth = Constants.GAME_WIDTH;
+		public int screenHeight = Constants.GAME_HEIGHT;
 		public FullScreenMode fullScreenMode = FullScreenMode.FullScreenWindow;
 
 		private void Awake()

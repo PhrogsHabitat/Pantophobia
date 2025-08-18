@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Phobia.Gameplay.Components.Level.Levels
 {
-    public class TestLevel : LevelBase
+    public class TestLevel : LevelBase, IPlayStateInitializable
     {
         private LevelProp testProp;
         private LevelProp background;
@@ -43,6 +43,10 @@ namespace Phobia.Gameplay.Components.Level.Levels
 
             // Get reference to the main music from PlayState
             _mainMusic = PlayState.Instance.heartBeatMusic;
+
+            // Play animations here
+            sillyGirl.PlayAnimation("rig_|rig_Action");
+            spinner.PlayAnimation("Spin");
         }
 
         public override void InitLevelSpecifics()
@@ -50,24 +54,21 @@ namespace Phobia.Gameplay.Components.Level.Levels
             Debug.Log("[TEST] Level specifics initialized");
         }
 
-        public override void UpdateLevel(float elapsed)
-        {
+		// MonoBehaviour Update method
+		public override void Update()
+		{
+			Debug.Log("ghetto");
+			if (!_musicTied && sillyGirl != null && _mainMusic != null)
+			{
+				TieMusicToSillyGirl();
+				_musicTied = true;
+			}
 
-            if (!_musicTied && sillyGirl != null && _mainMusic != null)
-            {
-                TieMusicToSillyGirl();
-                _musicTied = true;
-            }
-
-            if (!_mainMusic)
-            {
-                Debug.Log("Failed to tie the music to SillyGirl. Attempting to reset _mainMusic...");
-                _mainMusic = PlayState.Instance.heartBeatMusic;
-                sillyGirl.PlayAnimation("rig_|rig_Action");
-                spinner.PlayAnimation("Spin");
-            }
-            base.UpdateLevel(elapsed);
-
+			if (Controls.ACCEPT || Controls.isPressed("back"))
+			{
+				Debug.Log("Gay");
+			}
+			base.Update();
         }
 
         private void TieMusicToSillyGirl()
@@ -80,56 +81,7 @@ namespace Phobia.Gameplay.Components.Level.Levels
             _mainMusic.TieTo(sillyGirl.transform);
             _mainMusic.SetDistanceParams(0.1f, SOUND_RADIUS);
             _mainMusic.spatialEnabled = true;
-
             Debug.Log($"Main music tied to SillyGirl with radius {SOUND_RADIUS}");
-        }
-
-        public override void HandleLevelUpdate(float elapsed, Vector2 mousePos)
-        {
-
-            if (Controls.ACCEPT)
-            {
-                Debug.Log("[DEBUG] ACCEPT action triggered");
-                if (sillyGirl != null)
-                {
-                    sillyGirl.transform.position += Vector3.forward * 2f;
-                    Debug.Log($"Moved SillyGirl closer to {sillyGirl.transform.position}");
-                }
-            }
-
-            if (Controls.isPressed("accept"))
-            {
-                Debug.Log("[ACCEPT] - Pressed from UpdateLevel");
-            }
-
-            if (Controls.BACK)
-            {
-                Debug.Log("[DEBUG] BACK action triggered");
-                if (sillyGirl != null)
-                {
-                    sillyGirl.transform.position += Vector3.back * 2f;
-                    Debug.Log($"Moved SillyGirl farther to {sillyGirl.transform.position}");
-                }
-            }
-
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                if (_mainMusic != null)
-                {
-                    _mainMusic.spatialEnabled = !_mainMusic.spatialEnabled;
-                    Debug.Log($"Spatial audio: {_mainMusic.spatialEnabled}");
-
-                    if (_mainMusic.spatialEnabled)
-                    {
-                        Debug.Log("Spatial audio ENABLED - sound tied to SillyGirl");
-                    }
-                    else
-                    {
-                        Debug.Log("Spatial audio DISABLED - sound is now 2D");
-                    }
-                }
-            }
-            base.HandleLevelUpdate(elapsed, mousePos);
         }
 
         public override void TriggerEvent(string eventType, object parameters)

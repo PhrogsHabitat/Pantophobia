@@ -9,244 +9,280 @@ using UnityEngine;
 
 namespace Phobia.Gameplay
 {
-    public class PlayState : MonoBehaviour
-    {
-        public static PlayState Instance { get; private set; }
+	public class PlayState : MonoBehaviour
+	{
+		public static PlayState Instance { get; private set; }
 
-        public UnityEngine.Camera mainCamera;
-        public Transform cameraFollowPoint;
-        public float defaultCamZoom = 1.05f;
+		public UnityEngine.Camera mainCamera;
+		public Transform cameraFollowPoint;
+		public float defaultCamZoom = 1.05f;
 
-        public string CurrentSceneId { get; private set; }
-        private MonoBehaviour _activeScene;
+		public string CurrentSceneId { get; private set; }
+		private MonoBehaviour _activeScene;
 
-        public string currentLevel = "cumLevel";
+		public string currentLevel = "cumLevel";
 
-        private PhobiaSound _heartBeatMusic;
-        public PhobiaSound heartBeatMusic => _heartBeatMusic;
+		private PhobiaSound _heartBeatMusic;
+		public PhobiaSound heartBeatMusic => _heartBeatMusic;
 
-        private void Awake()
-        {
-            if (Instance == null)
-            {
-                Instance = this;
-                DontDestroyOnLoad(gameObject);
-                mainCamera = FindOrCreatePhobiaCamera();
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-        }
+		private void Awake()
+		{
+			if (Instance == null)
+			{
+				Instance = this;
+				DontDestroyOnLoad(gameObject);
+				mainCamera = FindOrCreatePhobiaCamera();
+			}
+			else
+			{
+				Destroy(gameObject);
+			}
+		}
 
-        public void LoadScene(string sceneId)
-        {
-            // Cleanup previous scene
-            if (_activeScene != null)
-            {
-                Destroy(_activeScene.gameObject);
-                _activeScene = null;
-            }
+		public void LoadScene(string sceneId)
+		{
+			CleanupPreviousScene();
 
-            // Create new scene
-            if (SceneRegistry.TryCreateScene(sceneId, this, out var newScene))
-            {
-                _activeScene = newScene;
-                CurrentSceneId = sceneId;
+			if (SceneRegistry.TryCreateScene(sceneId, this, out var newScene))
+			{
+				_activeScene = newScene;
+				CurrentSceneId = sceneId;
 
-                // Handle scene-specific initialization
-                if (newScene is LevelBase level)
-                {
-                    InitializeLevel(level);
-                    currentLevel = sceneId;
-                }
-                else if (newScene is UIBase ui)
-                {
-                    InitializeUI(ui);
-                }
-            }
-        }
+				// Initialize based on interface instead of concrete type
+				if (newScene is IPlayStateInitializable initializable)
+				{
+					initializable.Initialize(this);
+				}
 
-        private void InitializeLevel(LevelBase level)
-        {
-            CleanupPreviousLevel();
+				// NEW: Handle scene type specific initialization
+				InitializeScene(newScene);
+			}
+		}
+		private void InitializeScene(MonoBehaviour scene)
+		{
+			if (scene is LevelBase level)
+			{
+				InitializeLevel(level);
+			}
+			else if (scene is UIBase ui)
+			{
+				InitializeUI(ui);
+			}
+		}
 
-            LevelData levelData = LevelData.LoadLevelMetadata(CurrentSceneId);
-            if (levelData == null)
-            {
-                Debug.LogError("Failed to load level metadata");
-                levelData = CreateFallbackLevelData();
-            }
+		private void CleanupPreviousScene()
+		{
+			// ADDED: Proper UI cleanup
+			if (_activeScene is UIBase ui)
+			{
+				ui.HideUI();
+			}
+		}
 
-            defaultCamZoom = levelData.defaultZoom;
-            mainCamera.orthographicSize = defaultCamZoom;
+		private void InitializeLevel(LevelBase level)
+		{
+			CleanupPreviousLevel();
 
-            SetupMusic(levelData);
+			LevelData levelData = LevelData.LoadLevelMetadata(CurrentSceneId);
+			if (levelData == null)
+			{
+				Debug.LogError("Failed to load level metadata");
+				levelData = CreateFallbackLevelData();
+			}
 
-            level.Create();
-            level.InitLevelSpecifics();
-        }
+			defaultCamZoom = levelData.defaultZoom;
+			mainCamera.orthographicSize = defaultCamZoom;
 
-        private void InitializeUI(UIBase ui)
-        {
-            // UI-specific initialization
-            ui.CreateUI();
-            ui.InitUISpecifics();
-            ui.ShowUI();
-        }
+			SetupMusic(levelData);
 
-        private void CleanupPreviousLevel()
-        {
-            if (_activeScene != null)
-            {
-                Destroy(_activeScene.gameObject);
-                _activeScene = null;
-            }
+			level.Create();
+			level.InitLevelSpecifics();
+		}
 
-            if (_heartBeatMusic != null)
-            {
-                _heartBeatMusic.Stop();
-                _heartBeatMusic.ReturnToPool();
-                _heartBeatMusic = null;
-            }
+		private void InitializeUI(UIBase ui)
+		{
+			// UI-specific initialization
+			LevelData levelData = LevelData.LoadLevelMetadata(CurrentSceneId);
+			if (levelData == null)
+			{
+				Debug.LogError("Failed to load level metadata");
+				levelData = CreateFallbackLevelData();
+			}
 
-            if (Conductor.Instance != null)
-            {
-                Conductor.Instance.OnBeatHit -= HandleBeat;
-                Conductor.Instance.OnStepHit -= HandleStep;
-                Conductor.Instance.OnMeasureHit -= HandleMeasure;
-            }
-        }
+			defaultCamZoom = levelData.defaultZoom;
+			mainCamera.orthographicSize = defaultCamZoom;
 
-        private void EnsureConductor()
-        {
-            if (Conductor.Instance == null)
-            {
-                Debug.LogWarning("[PlayState] Conductor.Instance is null. Creating a new Conductor.");
-                var conductorGO = new GameObject("Conductor");
-                conductorGO.AddComponent<Conductor>();
-            }
-        }
+			SetupMusic(levelData);
 
-        private void SetupMusic(LevelData levelData)
-        {
-            EnsureConductor();
+			ui.CreateUI();
+			ui.InitUISpecifics();
+			ui.ShowUI();
+		}
 
-            string musicPath = Paths.levelMusic(CurrentSceneId, levelData.songId);
-            Debug.Log($"[SetupMusic] Loading music from path: {musicPath}");
+		private void CleanupPreviousLevel()
+		{
+			if (_activeScene != null)
+			{
+				Destroy(_activeScene.gameObject);
+				_activeScene = null;
+			}
 
-            AudioClip clip = Resources.Load<AudioClip>(musicPath);
+			if (_heartBeatMusic != null)
+			{
+				_heartBeatMusic.Stop();
+				_heartBeatMusic.ReturnToPool();
+				_heartBeatMusic = null;
+			}
 
-            if (clip != null)
-            {
-                Debug.Log("[SetupMusic] Music loaded successfully.");
-                _heartBeatMusic = PhobiaSound.Create(clip, 1f, true, false);
-                _heartBeatMusic.persistent = true;
-                _heartBeatMusic.Play();
+			if (Conductor.Instance != null)
+			{
+				Conductor.Instance.OnBeatHit -= HandleBeat;
+				Conductor.Instance.OnStepHit -= HandleStep;
+				Conductor.Instance.OnMeasureHit -= HandleMeasure;
+			}
+		}
 
-                if (Conductor.Instance != null)
-                {
-                    Debug.Log("[SetupMusic] Conductor instance found. Mapping song.");
-                    Conductor.Instance.MapSong(_heartBeatMusic, levelData.bpm, levelData.timeChanges);
-                    Conductor.Instance.timeSignatureNumerator = levelData.songSigNum;
-                    Conductor.Instance.timeSignatureDenominator = levelData.songSigDenum;
+		private void EnsureConductor()
+		{
+			if (Conductor.Instance == null)
+			{
+				Debug.LogWarning("[PlayState] Conductor.Instance is null. Creating a new Conductor.");
+				var conductorGO = new GameObject("Conductor");
+				conductorGO.AddComponent<Conductor>();
+			}
+		}
 
-                    Conductor.Instance.OnBeatHit += HandleBeat;
-                    Conductor.Instance.OnStepHit += HandleStep;
-                    Conductor.Instance.OnMeasureHit += HandleMeasure;
-                }
-                else
-                {
-                    Debug.LogError("[SetupMusic] Conductor.Instance is still null after fallback.");
-                }
-            }
-            else
-            {
-                Debug.LogError($"[SetupMusic] Music not found: {musicPath}");
-            }
-        }
+		private void SetupMusic(LevelData levelData)
+		{
+			EnsureConductor();
 
-        private void CreateBackground(Color color)
-        {
-            GameObject bg = new GameObject("Background");
-            SpriteRenderer renderer = bg.AddComponent<SpriteRenderer>();
-            renderer.color = color;
-            renderer.sprite = Sprite.Create(
-                new Texture2D(1, 1),
-                new Rect(0, 0, 1, 1),
-                Vector2.zero
-            );
-            renderer.drawMode = SpriteDrawMode.Tiled;
-            renderer.size = new Vector2(20, 20);
-        }
+			string musicPath = Paths.levelMusic(CurrentSceneId, levelData.songId);
+			Debug.Log($"[SetupMusic] Loading music from path: {musicPath}");
 
-        private void HandleBeat()
-        {
-            Debug.Log("Beat hit");
-        }
+			AudioClip clip = Resources.Load<AudioClip>(musicPath);
 
-        private void HandleStep()
-        {
-            Debug.Log("Step hit");
-        }
+			if (clip != null)
+			{
+				Debug.Log("[SetupMusic] Music loaded successfully.");
+				_heartBeatMusic = PhobiaSound.Create(clip, 1f, true, false);
+				_heartBeatMusic.persistent = true;
+				_heartBeatMusic.Play();
 
-        private void HandleMeasure()
-        {
-            Debug.Log("Measure hit");
-        }
+				if (Conductor.Instance != null)
+				{
+					Debug.Log("[SetupMusic] Conductor instance found. Mapping song.");
+					Conductor.Instance.MapSong(_heartBeatMusic, levelData.bpm, levelData.timeChanges);
+					Conductor.Instance.timeSignatureNumerator = levelData.songSigNum;
+					Conductor.Instance.timeSignatureDenominator = levelData.songSigDenum;
 
-        public static UnityEngine.Camera FindOrCreatePhobiaCamera()
-        {
-            var phobiaCamera = FindFirstObjectByType<Phobia.Camera.PhobiaCamera>();
-            if (phobiaCamera != null)
-            {
-                Debug.Log("[PlayState] Found existing PhobiaCamera");
-                return phobiaCamera.GetComponent<UnityEngine.Camera>();
-            }
+					Conductor.Instance.OnBeatHit += HandleBeat;
+					Conductor.Instance.OnStepHit += HandleStep;
+					Conductor.Instance.OnMeasureHit += HandleMeasure;
+				}
+				else
+				{
+					Debug.LogError("[SetupMusic] Conductor.Instance is still null after fallback.");
+				}
+			}
+			else
+			{
+				Debug.LogError($"[SetupMusic] Music not found: {musicPath}");
+			}
+		}
 
-            var mainCam = UnityEngine.Camera.main;
-            if (mainCam != null)
-            {
-                var existingPhobiaCam = mainCam.GetComponent<Phobia.Camera.PhobiaCamera>();
-                if (existingPhobiaCam == null)
-                {
-                    mainCam.gameObject.AddComponent<Phobia.Camera.PhobiaCamera>();
-                    Debug.Log("[PlayState] Added PhobiaCamera component to existing main camera");
-                }
-                return mainCam;
-            }
+		private void CreateBackground(Color color)
+		{
+			GameObject bg = new GameObject("Background");
+			SpriteRenderer renderer = bg.AddComponent<SpriteRenderer>();
+			renderer.color = color;
+			renderer.sprite = Sprite.Create(
+				new Texture2D(1, 1),
+				new Rect(0, 0, 1, 1),
+				Vector2.zero
+			);
+			renderer.drawMode = SpriteDrawMode.Tiled;
+			renderer.size = new Vector2(20, 20);
+		}
 
-            var camGO = new GameObject("PhobiaCamera");
-            var camera = camGO.AddComponent<UnityEngine.Camera>();
-            var phobiaCam = camGO.AddComponent<Phobia.Camera.PhobiaCamera>();
-            camera.orthographic = true;
-            camGO.tag = "MainCamera";
-            Debug.Log("[PlayState] Created new PhobiaCamera");
+		private void HandleBeat()
+		{
+			Debug.Log("Beat hit");
+		}
 
-            return camera;
-        }
+		private void HandleStep()
+		{
+			Debug.Log("Step hit");
+		}
 
-        private LevelData CreateFallbackLevelData()
-        {
-            return new LevelData
-            {
-                defaultZoom = 1.05f,
-                bgColor = new Color(0.1f, 0.1f, 0.2f, 1f),
-                songId = "default",
-                bpm = 120,
-                songSigNum = 4,
-                songSigDenum = 4,
-                timeChanges = new List<Conductor.TimeChange>
-                {
-                    new Conductor.TimeChange
-                    {
-                        timeMs = 0,
-                        bpm = 120,
-                        numerator = 4,
-                        denominator = 4
-                    }
-                }
-            };
-        }
+		private void HandleMeasure()
+		{
+			Debug.Log("Measure hit");
+		}
+
+		public static UnityEngine.Camera FindOrCreatePhobiaCamera()
+		{
+			var phobiaCamera = FindFirstObjectByType<Phobia.Camera.PhobiaCamera>();
+			if (phobiaCamera != null)
+			{
+				Debug.Log("[PlayState] Found existing PhobiaCamera");
+				return phobiaCamera.GetComponent<UnityEngine.Camera>();
+			}
+
+			var mainCam = UnityEngine.Camera.main;
+			if (mainCam != null)
+			{
+				var existingPhobiaCam = mainCam.GetComponent<Phobia.Camera.PhobiaCamera>();
+				if (existingPhobiaCam == null)
+				{
+					mainCam.gameObject.AddComponent<Phobia.Camera.PhobiaCamera>();
+					Debug.Log("[PlayState] Added PhobiaCamera component to existing main camera");
+				}
+				return mainCam;
+			}
+
+			var camGO = new GameObject("PhobiaCamera");
+			var camera = camGO.AddComponent<UnityEngine.Camera>();
+			var phobiaCam = camGO.AddComponent<Phobia.Camera.PhobiaCamera>();
+			camera.orthographic = true;
+			camGO.tag = "MainCamera";
+			Debug.Log("[PlayState] Created new PhobiaCamera");
+
+			return camera;
+		}
+
+		private LevelData CreateFallbackLevelData()
+		{
+			return new LevelData
+			{
+				defaultZoom = 1.05f,
+				bgColor = new Color(0.1f, 0.1f, 0.2f, 1f),
+				songId = "default",
+				bpm = 120,
+				songSigNum = 4,
+				songSigDenum = 4,
+				timeChanges = new List<Conductor.TimeChange>
+				{
+					new Conductor.TimeChange
+					{
+						timeMs = 0,
+						bpm = 120,
+						numerator = 4,
+						denominator = 4
+					}
+				}
+			};
+		}
+
+		protected void Update()
+		{
+			if (_activeScene is LevelBase level)
+			{
+				level.Update();
+			}
+			if (_activeScene is UIBase scene)
+			{
+				scene.Update();
+			}
+		}
     }
 }

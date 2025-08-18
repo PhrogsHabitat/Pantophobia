@@ -618,6 +618,11 @@ namespace Phobia.Input
         public PhobiaAction AddAction(string actionName, params string[] bindings)
         {
             // Remove existing action if present
+            var existingAction = _actionMap.actions.FirstOrDefault(a => a.name == actionName);
+            if (existingAction != null)
+            {
+                UnityEngine.InputSystem.InputActionSetupExtensions.RemoveAction(_inputAsset, actionName);
+            }
             if (_actions.ContainsKey(actionName))
             {
                 _actions[actionName].Dispose();

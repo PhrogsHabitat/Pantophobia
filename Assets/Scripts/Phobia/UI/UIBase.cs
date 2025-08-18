@@ -91,11 +91,7 @@ namespace Phobia.ui
         /// Reset the UI to initial state.
         /// </summary>
         public virtual void ResetUI() { }
-
-        /// <summary>
-        /// Update the UI each frame.
-        /// </summary>
-        public virtual void UpdateUI(float elapsed) { }
+		public virtual void Update() { }
 
         /// <summary>
         /// Show the UI.

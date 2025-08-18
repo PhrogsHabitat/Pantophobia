@@ -25,10 +25,9 @@ namespace Phobia.Gameplay.Components.Level.Levels
 		}
 
 		public virtual void Create() { }
+		public virtual void Update() { }
 		public virtual void InitLevelSpecifics() { }
 		public virtual void ResetLevel() { }
-		public virtual void UpdateLevel(float elapsed) { }
-		public virtual void HandleLevelUpdate(float elapsed, Vector2 mousePos) { }
 		public virtual void TriggerEvent(string eventType, object parameters) { }
 		public virtual void ToggleWatcher() { }
 

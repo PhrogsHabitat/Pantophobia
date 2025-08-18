@@ -28,6 +28,16 @@ namespace Phobia
 		public const string SWAG = "swag";
 
 		/// <summary>
+		/// The games width, dumbass
+		/// <summary>
+		public const int GAME_WIDTH = 33;
+
+		/// <summary>
+		/// The games height, dumbass
+		/// <summary>
+		public const int GAME_HEIGHT = 33;
+
+		/// <summary>
 		/// Cum bro
 		/// </summary>
 		public const string CUM = "cum";

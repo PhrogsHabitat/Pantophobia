@@ -1,6 +1,7 @@
 using UnityEngine;
 using Controls = Phobia.Input.Controls;
 using Phobia.Gameplay;
+using Phobia.RegistryShit;
 
 namespace Phobia.Core
 {

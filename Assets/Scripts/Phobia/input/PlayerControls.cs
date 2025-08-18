@@ -36,10 +36,9 @@ namespace Phobia.Input
 			}
 			_input = PhobiaInput.Instance;
 
+			_initialized = true;
 			// Load saved actions from PlayerControlsSave
 			LoadSavedActions();
-
-			_initialized = true;
 			Debug.Log("[CONTROLS] Controls system initialized successfully - ready to use!");
 		}
 

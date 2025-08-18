@@ -59,11 +59,7 @@ namespace Phobia.RegistryShit
             var go = new GameObject($"{sceneId}_Scene");
             component = go.AddComponent(info.ComponentType) as MonoBehaviour;
 
-            if (component is Gameplay.IPlayStateInitializable initializable)
-            {
-                initializable.Initialize(playState);
-            }
-
+            // REMOVED playState initialization here - move to PlayState
             return true;
         }
     }

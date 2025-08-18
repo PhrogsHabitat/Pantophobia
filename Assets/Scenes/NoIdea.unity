@@ -334,8 +334,8 @@ MonoBehaviour:
   swagDebug: 1
   dontDestroyOnLoad: 1
   fullScreen: 1
-  screenWidth: 1920
-  screenHeight: 1080
+  screenWidth: 33
+  screenHeight: 44
   fullScreenMode: 1
 --- !u!1 &985515844
 GameObject:
