@@ -588,10 +588,10 @@ namespace Phobia.Save
 
 				if (!string.IsNullOrEmpty(Player.lastPlayedLevel))
 				{
-					playState.currentLevel = Player.lastPlayedLevel;
+					playState.GetType().GetProperty("CurrentSceneId")?.SetValue(playState, Player.lastPlayedLevel);
 				}
 
-				Debug.Log($"[SAVE] PlayState initialized with level: {playState.currentLevel}");
+				Debug.Log($"[SAVE] PlayState initialized with level: {playState.CurrentSceneId}");
 			}
 
 			/// <summary>

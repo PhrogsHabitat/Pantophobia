@@ -47,20 +47,40 @@ namespace Phobia.RegistryShit
         }
 
         public static bool TryCreateScene(string sceneId, Gameplay.PlayState playState, out MonoBehaviour component)
-        {
-            component = null;
-
+		{
+			component = null;
             if (!_scenes.TryGetValue(sceneId, out var info))
             {
                 Debug.LogError($"[SCENE REGISTRY] Scene not registered: {sceneId}");
                 return false;
             }
 
+            // Create new GameObject
             var go = new GameObject($"{sceneId}_Scene");
+
+            // Make it a child of PlayState for visibility
+            go.transform.SetParent(playState.transform);
+
+            // Ensure GameObject is active before adding component
+            go.SetActive(true);
+
             component = go.AddComponent(info.ComponentType) as MonoBehaviour;
 
-            // REMOVED playState initialization here - move to PlayState
+            // Ensure MonoBehaviour is enabled
+            if (component != null)
+            {
+                component.enabled = true;
+                Debug.Log($"[SceneRegistry] Added component: {component.GetType().Name}, enabled: {component.enabled}, GameObject active: {component.gameObject.activeSelf}");
+            }
+            else
+            {
+                Debug.LogError($"[SceneRegistry] Failed to add component of type: {info.ComponentType.Name}");
+            }
+
+            // Ensure it's visible in hierarchy
+            Debug.Log($"[SceneRegistry] Created scene object: {go.name}", go);
+
             return true;
-        }
+		}
     }
 }

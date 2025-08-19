@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Phobia.Gameplay.Components.Level.Levels
 {
-    public class TestLevel : LevelBase, IPlayStateInitializable
+    public class TestLevel : LevelBase
     {
         private LevelProp testProp;
         private LevelProp background;
@@ -24,7 +24,10 @@ namespace Phobia.Gameplay.Components.Level.Levels
         public override void Create()
         {
             base.Create();
-            Debug.Log("[TEST] TestLevel.Create() called");
+
+            Debug.Log($"[TestLevel] Create called on GameObject: {gameObject.name}");
+			Debug.Log($"[TestLevel] GameObject active: {gameObject.activeSelf}");
+			Debug.Log($"[TestLevel] Component enabled: {this.enabled}");
 
             // Create background
             background = LevelProp.Create("Background", Vector2.zero);
@@ -45,8 +48,8 @@ namespace Phobia.Gameplay.Components.Level.Levels
             _mainMusic = PlayState.Instance.heartBeatMusic;
 
             // Play animations here
-            sillyGirl.PlayAnimation("rig_|rig_Action");
-            spinner.PlayAnimation("Spin");
+            // sillyGirl.PlayAnimation("rig_|rig_Action");
+
         }
 
         public override void InitLevelSpecifics()

@@ -20,7 +20,7 @@ namespace Phobia.Gameplay
 		public string CurrentSceneId { get; private set; }
 		private MonoBehaviour _activeScene;
 
-		public string currentLevel = "cumLevel";
+	// NOTE: currentLevel is not used for scene loading. Consider removing or updating its usage.
 
 		private PhobiaSound _heartBeatMusic;
 		public PhobiaSound heartBeatMusic => _heartBeatMusic;
@@ -41,25 +41,36 @@ namespace Phobia.Gameplay
 
 		public void LoadScene(string sceneId)
 		{
-			CleanupPreviousScene();
-
-			if (SceneRegistry.TryCreateScene(sceneId, this, out var newScene))
+			// Set the current scene id before loading
+			CurrentSceneId = sceneId;
+			Debug.Log($"[PlayState] LoadScene called with sceneId: {sceneId}");
+			try
 			{
-				_activeScene = newScene;
-				CurrentSceneId = sceneId;
-
-				// Initialize based on interface instead of concrete type
-				if (newScene is IPlayStateInitializable initializable)
+				CleanupPreviousScene();
+				Debug.Log($"[PlayState] After CleanupPreviousScene, _activeScene: {_activeScene?.GetType().Name ?? "null"}");
+				if (SceneRegistry.TryCreateScene(sceneId, this, out var newScene))
 				{
-					initializable.Initialize(this);
+					Debug.Log($"[PlayState] SceneRegistry returned: {newScene?.GetType().Name}, enabled: {newScene?.enabled}, GameObject active: {newScene?.gameObject.activeSelf}");
+					InitializeScene(newScene);
+					_activeScene = newScene;
+					Debug.Log($"[PlayState] _activeScene set: {_activeScene?.GetType().Name ?? "null"}");
+					Debug.Log($"[PlayState] After InitializeScene, _activeScene: {_activeScene?.GetType().Name ?? "null"}");
 				}
-
-				// NEW: Handle scene type specific initialization
-				InitializeScene(newScene);
+				else
+				{
+					Debug.LogError($"[PlayState] SceneRegistry could not create scene for id: {sceneId}");
+				}
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogError($"Failed to load scene {sceneId}: {e}");
 			}
 		}
 		private void InitializeScene(MonoBehaviour scene)
 		{
+			// Ensure the scene's GameObject is active
+			scene.gameObject.SetActive(true);
+
 			if (scene is LevelBase level)
 			{
 				InitializeLevel(level);
@@ -72,12 +83,38 @@ namespace Phobia.Gameplay
 
 		private void CleanupPreviousScene()
 		{
-			// ADDED: Proper UI cleanup
-			if (_activeScene is UIBase ui)
+			// ADDED: Full scene cleanup
+			Debug.Log($"[PlayState] CleanupPreviousScene called, _activeScene: {_activeScene?.GetType().Name ?? "null"}");
+			if (_activeScene != null)
 			{
-				ui.HideUI();
+				if (_activeScene is UIBase ui)
+				{
+					ui.HideUI();
+				}
+
+				Destroy(_activeScene.gameObject);
+				Debug.Log($"[PlayState] Destroyed _activeScene GameObject: {_activeScene?.GetType().Name ?? "null"}");
+				_activeScene = null;
+				Debug.Log($"[PlayState] _activeScene set to null in CleanupPreviousScene");
+			}
+
+			// Music cleanup
+			if (_heartBeatMusic != null)
+			{
+				_heartBeatMusic.Stop();
+				_heartBeatMusic.ReturnToPool();
+				_heartBeatMusic = null;
+			}
+
+			// Conductor cleanup
+			if (Conductor.Instance != null)
+			{
+				Conductor.Instance.OnBeatHit -= HandleBeat;
+				Conductor.Instance.OnStepHit -= HandleStep;
+				Conductor.Instance.OnMeasureHit -= HandleMeasure;
 			}
 		}
+
 
 		private void InitializeLevel(LevelBase level)
 		{
