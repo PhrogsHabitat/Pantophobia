@@ -10,7 +10,7 @@ namespace Phobia
 		/// <summary>
 		/// Initial state identifier (must be registered in UIRegistry)
 		/// </summary>
-		public const string INIT_STATE = "TestLevel";
+		public const string INIT_STATE = "InitState";
 
 		/// <summary>
 		/// Target framerate for the game
@@ -29,12 +29,12 @@ namespace Phobia
 
 		/// <summary>
 		/// The games width, dumbass
-		/// <summary>
+		/// </summary>
 		public const int GAME_WIDTH = 33;
 
 		/// <summary>
 		/// The games height, dumbass
-		/// <summary>
+		/// </summary>
 		public const int GAME_HEIGHT = 33;
 
 		/// <summary>

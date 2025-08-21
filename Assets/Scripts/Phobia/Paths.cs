@@ -35,4 +35,8 @@ public static class Paths
 	{
 		return $"Mats/{level}/{mat}";
 	}
+	public static string levelFont(string level, string font)
+	{
+		return $"Fonts/{level}/{font}";
+	}
 }

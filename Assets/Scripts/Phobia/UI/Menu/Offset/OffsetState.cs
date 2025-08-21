@@ -6,22 +6,28 @@ using UnityEngine;
 
 namespace Phobia.ui.Menu.Offset
 {
-    public class OffsetMenu : UIBase, IPlayStateInitializable
+    public class OffsetMenu : UIBase
     {
         private PhobiaVis visualizer;
         private PhobiaSound _mainMusic;
+        private bool _visualizerInitialized = false;
 
-        public override void CreateUI()
+        public override void Initialize(PlayState playStateRef = null)
         {
-            base.CreateUI();
-            Debug.Log("[OFFSET] Creating simple offset menu");
+            base.Initialize(playStateRef);
         }
 
-        public override void InitUISpecifics()
+        public override void Create()
         {
-            base.InitUISpecifics();
-            // Check if Controls is ready
+            // Ensure initialization (canvas setup) before creating UI
+            if (!isInitialized)
+            {
+                Initialize(PlayState.Instance);
+            }
+            base.Create();
+            Debug.Log("[OFFSET] Creating simple offset menu");
 
+            // Check if Controls is ready
             if (!Controls.IsReady)
             {
                 Debug.LogError("[OFFSET] Controls not available! Make sure Main.Initialize() was called.");
@@ -51,38 +57,64 @@ namespace Phobia.ui.Menu.Offset
                 return;
             }
 
-            // Create visualizer - ONE LINE!
-            visualizer = PhobiaVis.Create(_mainMusic);
+            // Create visualizer with proper parent (the UI canvas)
+            CreateVisualizer();
         }
 
-		// USE STANDARD UPDATE:
-		public override void Update()
-		{
-			if (visualizer == null) { return; }
-
-			if (Controls.ACCEPT)
-			{
-				visualizer.pop();
-			}
-			
-        }
-
-        /// <summary>
-        /// Show the OffsetMenu UI.
-        /// </summary>
-        public override void ShowUI()
+        private void CreateVisualizer()
         {
-            base.ShowUI();
-            Debug.Log("[OFFSET] OffsetMenu activated.");
+            // Create visualizer as a child of the UIBase's Canvas
+            if (uiCanvas != null)
+            {
+                visualizer = PhobiaVis.CreateOnCanvas(uiCanvas, null);
+            }
+            else
+            {
+				Debug.Log("canvas null");
+            }
+
+            if (visualizer != null)
+            {
+                // Configure the visualizer
+                visualizer.SetSound(_mainMusic);
+
+                // Initialize the visualizer with its config
+                visualizer.Initialize(visualizer.Config);
+
+                // Set up RectTransform for proper UI placement
+
+                _visualizerInitialized = true;
+                Debug.Log("[OFFSET] Visualizer created and initialized successfully");
+            }
+            else
+            {
+                Debug.LogError("[OFFSET] Failed to create visualizer");
+            }
         }
 
-        /// <summary>
-        /// Hide the OffsetMenu UI.
-        /// </summary>
-        public override void HideUI()
+        // USE STANDARD UPDATE:
+        public override void Update()
         {
-            base.HideUI();
-            Debug.Log("[OFFSET] OffsetMenu deactivated.");
+            base.Update();
+
+            // Ensure we have the music reference
+            if (_mainMusic == null && PlayState.Instance != null)
+            {
+                _mainMusic = PlayState.Instance.heartBeatMusic;
+
+                // If we now have music but no visualizer, create it
+                if (_mainMusic != null && !_visualizerInitialized)
+                {
+                    CreateVisualizer();
+                }
+            }
+
+            if (visualizer == null || !_visualizerInitialized) { return; }
+
+            if (Controls.ACCEPT)
+            {
+                visualizer.pop();
+            }
         }
 
         /// <summary>
@@ -123,6 +155,17 @@ namespace Phobia.ui.Menu.Offset
             Debug.Log($"[OFFSET] Reset bindings for 'offsetBars4': {string.Join(", ", resetBindings)}");
 
             Debug.Log("=== OFFSET CONTROLS SAVE/LOAD TEST COMPLETE ===");
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            // Clean up visualizer
+            if (visualizer != null)
+            {
+                Destroy(visualizer.gameObject);
+            }
         }
     }
 }

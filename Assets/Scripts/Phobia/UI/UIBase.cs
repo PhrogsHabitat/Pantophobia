@@ -77,44 +77,16 @@ namespace Phobia.ui
             }
         }
 
-        /// <summary>
-        /// Create and setup UI elements.
-        /// </summary>
-        public virtual void CreateUI() { }
+		/// <summary>
+		/// Create and setup UI elements.
+		/// </summary>
+		public virtual void Create() { }
 
-        /// <summary>
-        /// Initialize UI-specific functionality.
-        /// </summary>
-        public virtual void InitUISpecifics() { }
-
-        /// <summary>
-        /// Reset the UI to initial state.
-        /// </summary>
-        public virtual void ResetUI() { }
+		/// <summary>
+		/// Reset the UI to initial state.
+		/// </summary>
+		public virtual void Reset() { }
 		public virtual void Update() { }
-
-        /// <summary>
-        /// Show the UI.
-        /// </summary>
-        public virtual void ShowUI()
-        {
-            gameObject.SetActive(true);
-            if (uiCanvas != null)
-            {
-                uiCanvas.enabled = true;
-            }
-        }
-
-        /// <summary>
-        /// Hide the UI.
-        /// </summary>
-        public virtual void HideUI()
-        {
-            if (uiCanvas != null)
-            {
-                uiCanvas.enabled = false;
-            }
-        }
 
         /// <summary>
         /// Add a UI element to management.

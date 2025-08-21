@@ -24,10 +24,9 @@ namespace Phobia.Gameplay.Components.Level.Levels
         public override void Create()
         {
             base.Create();
-
             Debug.Log($"[TestLevel] Create called on GameObject: {gameObject.name}");
-			Debug.Log($"[TestLevel] GameObject active: {gameObject.activeSelf}");
-			Debug.Log($"[TestLevel] Component enabled: {this.enabled}");
+            Debug.Log($"[TestLevel] GameObject active: {gameObject.activeSelf}");
+            Debug.Log($"[TestLevel] Component enabled: {this.enabled}");
 
             // Create background
             background = LevelProp.Create("Background", Vector2.zero);
@@ -49,29 +48,23 @@ namespace Phobia.Gameplay.Components.Level.Levels
 
             // Play animations here
             // sillyGirl.PlayAnimation("rig_|rig_Action");
-
         }
 
-        public override void InitLevelSpecifics()
+        public override void Update()
         {
-            Debug.Log("[TEST] Level specifics initialized");
-        }
-
-		// MonoBehaviour Update method
-		public override void Update()
-		{
-			Debug.Log("ghetto");
+			Debug.Log("This state is gay");
+            // Example update logic
 			if (!_musicTied && sillyGirl != null && _mainMusic != null)
 			{
 				TieMusicToSillyGirl();
 				_musicTied = true;
 			}
 
-			if (Controls.ACCEPT || Controls.isPressed("back"))
-			{
-				Debug.Log("Gay");
-			}
-			base.Update();
+            if (Controls.ACCEPT || Controls.isPressed("back"))
+            {
+                Debug.Log("[TestLevel] Accept or Back pressed");
+            }
+            base.Update();
         }
 
         private void TieMusicToSillyGirl()
@@ -92,7 +85,7 @@ namespace Phobia.Gameplay.Components.Level.Levels
             Debug.Log($"[TEST] Event triggered: {eventType}");
         }
 
-        public override void ResetLevel()
+        public override void Reset()
         {
             foreach (var prop in props.Values)
             {

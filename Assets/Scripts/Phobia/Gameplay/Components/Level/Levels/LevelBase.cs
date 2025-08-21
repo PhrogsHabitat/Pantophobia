@@ -7,9 +7,7 @@ namespace Phobia.Gameplay.Components.Level.Levels
 	{
 		[HideInInspector] public PlayState playState;
 		protected Dictionary<string, LevelProp> props = new Dictionary<string, LevelProp>();
-
-		// REMOVED CONSTRUCTOR - NO PARAMETERS NEEDED
-
+		
 		protected virtual void Awake()
 		{
 			if (playState == null && PlayState.Instance != null)
@@ -24,34 +22,33 @@ namespace Phobia.Gameplay.Components.Level.Levels
 			Debug.Log($"[LevelBase] Initialized with PlayState: {playStateRef.name}");
 		}
 
-		public virtual void Create() { }
-		public virtual void Update() { }
-		public virtual void InitLevelSpecifics() { }
-		public virtual void ResetLevel() { }
-		public virtual void TriggerEvent(string eventType, object parameters) { }
-		public virtual void ToggleWatcher() { }
+	public virtual void Create() { }
+	public virtual void Update() { }
+	public virtual void Reset() { }
+	public virtual void TriggerEvent(string eventType, object parameters) { }
+	public virtual void ToggleWatcher() { }
 
-		public void AddProp(LevelProp prop, string name)
+	public void AddProp(LevelProp prop, string name)
+	{
+		if (prop == null)
 		{
-			if (prop == null)
-			{
-				Debug.LogError("Tried to add null prop to level");
-				return;
-			}
-
-			props[name] = prop;
-			prop.transform.SetParent(transform);
-			Debug.Log($"[LevelBase] Added prop: {name}");
+			Debug.LogError("Tried to add null prop to level");
+			return;
 		}
 
-		public LevelProp GetProp(string name)
+		props[name] = prop;
+		prop.transform.SetParent(transform);
+		Debug.Log($"[LevelBase] Added prop: {name}");
+	}
+
+	public LevelProp GetProp(string name)
+	{
+		if (props.ContainsKey(name))
 		{
-			if (props.ContainsKey(name))
-			{
-				return props[name];
-			}
-			Debug.LogWarning($"[LevelBase] Prop '{name}' not found");
-			return null;
+			return props[name];
 		}
+		Debug.LogWarning($"[LevelBase] Prop '{name}' not found");
+		return null;
+	}
 	}
 }

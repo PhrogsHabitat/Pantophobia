@@ -847,7 +847,7 @@ namespace Phobia.Audio.Vis
 			GameObject visObject = new GameObject("PhobiaVis");
 			if (parent != null)
 			{
-				visObject.transform.SetParent(parent);
+				visObject.transform.SetParent(parent, false);
 			}
 
 			// Add RectTransform for UI positioning
@@ -858,6 +858,25 @@ namespace Phobia.Audio.Vis
 			rectTransform.anchoredPosition = Vector2.zero;
 
 			PhobiaVis visualizer = visObject.AddComponent<PhobiaVis>();
+
+			// Try to find a Canvas in the parent chain
+			Canvas parentCanvas = null;
+			Transform search = parent;
+			while (search != null)
+			{
+				parentCanvas = search.GetComponent<Canvas>();
+				if (parentCanvas != null)
+				{
+					break;
+				}
+
+
+				search = search.parent;
+			}
+			if (parentCanvas != null)
+			{
+				visualizer._parentCanvas = parentCanvas;
+			}
 
 			if (config != null)
 			{

@@ -24,12 +24,12 @@ namespace Phobia.RegistryShit
         {
             Debug.Log("[SCENE REGISTRY] Initializing...");
 
-            // Register all scenes (could also load from config)
             RegisterScene("TestLevel", typeof(Gameplay.Components.Level.Levels.TestLevel), SceneType.Level);
             RegisterScene("OffsetMenu", typeof(ui.Menu.Offset.OffsetMenu), SceneType.UI);
+			RegisterScene("InitState", typeof(ui.Menu.Init.InitState), SceneType.UI);
             // Add more scenes here
 
-            Debug.Log($"[SCENE REGISTRY] Registered {_scenes.Count} scenes");
+			Debug.Log($"[SCENE REGISTRY] Registered {_scenes.Count} scenes");
         }
 
         public static void RegisterScene(string sceneId, Type componentType, SceneType sceneType)

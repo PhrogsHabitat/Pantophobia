@@ -617,6 +617,12 @@ namespace Phobia.Input
 
         public PhobiaAction AddAction(string actionName, params string[] bindings)
         {
+            // Disable the asset before modifying
+            if (_inputAsset.enabled)
+            {
+                _inputAsset.Disable();
+            }
+
             // Remove existing action if present
             var existingAction = _actionMap.actions.FirstOrDefault(a => a.name == actionName);
             if (existingAction != null)
@@ -628,14 +634,17 @@ namespace Phobia.Input
                 _actions[actionName].Dispose();
                 _actions.Remove(actionName);
             }
-            // Disable before modifying
-            _actionMap.Disable();
             var action = _actionMap.AddAction(actionName, InputActionType.Button);
             foreach (var binding in bindings)
             {
                 action.AddBinding(binding);
             }
-            _actionMap.Enable();
+
+            // Re-enable the asset if it was previously enabled
+            if (Config.autoEnable)
+            {
+                _inputAsset.Enable();
+            }
             var phobiaAction = new PhobiaAction(actionName, action);
             _actions[actionName] = phobiaAction;
             return phobiaAction;

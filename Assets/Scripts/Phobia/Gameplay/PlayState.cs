@@ -3,6 +3,7 @@ using Phobia.Audio;
 using Phobia.Gameplay.Components.Level;
 using Phobia.Gameplay.Components.Level.Levels;
 using Phobia.Gameplay.Components.Music;
+using Phobia.Input;
 using Phobia.RegistryShit;
 using Phobia.ui;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace Phobia.Gameplay
 		public string CurrentSceneId { get; private set; }
 		private MonoBehaviour _activeScene;
 
-	// NOTE: currentLevel is not used for scene loading. Consider removing or updating its usage.
+		// NOTE: currentLevel is not used for scene loading. Consider removing or updating its usage.
 
 		private PhobiaSound _heartBeatMusic;
 		public PhobiaSound heartBeatMusic => _heartBeatMusic;
@@ -71,13 +72,28 @@ namespace Phobia.Gameplay
 			// Ensure the scene's GameObject is active
 			scene.gameObject.SetActive(true);
 
-			if (scene is LevelBase level)
+			_activeScene = scene;
+
+			LevelData levelData = LevelData.LoadLevelMetadata(CurrentSceneId);
+			if (levelData == null)
 			{
-				InitializeLevel(level);
+				Debug.LogError("Failed to load level metadata");
+				levelData = CreateFallbackLevelData();
 			}
-			else if (scene is UIBase ui)
+
+			defaultCamZoom = levelData.defaultZoom;
+			mainCamera.orthographicSize = defaultCamZoom;
+
+			SetupMusic(levelData);
+
+			// Call Create directly
+			if (_activeScene is LevelBase level)
 			{
-				InitializeUI(ui);
+				level.Create();
+			}
+			else if (_activeScene is UIBase ui)
+			{
+				ui.Create();
 			}
 		}
 
@@ -87,11 +103,6 @@ namespace Phobia.Gameplay
 			Debug.Log($"[PlayState] CleanupPreviousScene called, _activeScene: {_activeScene?.GetType().Name ?? "null"}");
 			if (_activeScene != null)
 			{
-				if (_activeScene is UIBase ui)
-				{
-					ui.HideUI();
-				}
-
 				Destroy(_activeScene.gameObject);
 				Debug.Log($"[PlayState] Destroyed _activeScene GameObject: {_activeScene?.GetType().Name ?? "null"}");
 				_activeScene = null;
@@ -113,47 +124,6 @@ namespace Phobia.Gameplay
 				Conductor.Instance.OnStepHit -= HandleStep;
 				Conductor.Instance.OnMeasureHit -= HandleMeasure;
 			}
-		}
-
-
-		private void InitializeLevel(LevelBase level)
-		{
-			CleanupPreviousLevel();
-
-			LevelData levelData = LevelData.LoadLevelMetadata(CurrentSceneId);
-			if (levelData == null)
-			{
-				Debug.LogError("Failed to load level metadata");
-				levelData = CreateFallbackLevelData();
-			}
-
-			defaultCamZoom = levelData.defaultZoom;
-			mainCamera.orthographicSize = defaultCamZoom;
-
-			SetupMusic(levelData);
-
-			level.Create();
-			level.InitLevelSpecifics();
-		}
-
-		private void InitializeUI(UIBase ui)
-		{
-			// UI-specific initialization
-			LevelData levelData = LevelData.LoadLevelMetadata(CurrentSceneId);
-			if (levelData == null)
-			{
-				Debug.LogError("Failed to load level metadata");
-				levelData = CreateFallbackLevelData();
-			}
-
-			defaultCamZoom = levelData.defaultZoom;
-			mainCamera.orthographicSize = defaultCamZoom;
-
-			SetupMusic(levelData);
-
-			ui.CreateUI();
-			ui.InitUISpecifics();
-			ui.ShowUI();
 		}
 
 		private void CleanupPreviousLevel()
@@ -312,14 +282,18 @@ namespace Phobia.Gameplay
 
 		protected void Update()
 		{
+			if (Controls.isPressed("accept"))
+			{
+				Debug.Log("swag");
+			}
 			if (_activeScene is LevelBase level)
-			{
-				level.Update();
-			}
-			if (_activeScene is UIBase scene)
-			{
-				scene.Update();
-			}
+				{
+					level.Update();
+				}
+				else if (_activeScene is UIBase ui)
+				{
+					ui.Update();
+				}
 		}
     }
 }
