@@ -81,10 +81,23 @@ namespace Phobia.Gameplay
 				levelData = CreateFallbackLevelData();
 			}
 
+			// Set PlayState properties from LevelData
 			defaultCamZoom = levelData.defaultZoom;
 			mainCamera.orthographicSize = defaultCamZoom;
 
-			SetupMusic(levelData);
+			// Example: set PlayState flags from LevelData
+			bool forceNoMusic = levelData.forceNoMusic;
+			bool isLevel = levelData.isLevel;
+
+			// Optionally, expose these as PlayState properties if needed
+			// this.ForceNoMusic = forceNoMusic;
+			// this.IsLevel = isLevel;
+
+			// Setup music only if not forced off
+			if (!forceNoMusic)
+			{
+				SetupMusic(levelData);
+			}
 
 			// Call Create directly
 			if (_activeScene is LevelBase level)
@@ -282,18 +295,7 @@ namespace Phobia.Gameplay
 
 		protected void Update()
 		{
-			if (Controls.isPressed("accept"))
-			{
-				Debug.Log("swag");
-			}
-			if (_activeScene is LevelBase level)
-				{
-					level.Update();
-				}
-				else if (_activeScene is UIBase ui)
-				{
-					ui.Update();
-				}
+
 		}
     }
 }

@@ -141,9 +141,11 @@ namespace Phobia.Input
 		{
 			if (!IsReady)
 			{
+				Debug.Log($"[CONTROLS] isPressed('{actionName}') called but system not ready. _initialized: {_initialized}, _input: {_input != null}");
 				return false;
 			}
-			return _input.CheckPressed(actionName);
+			bool result = _input.CheckPressed(actionName);
+			return result;
 		}
 
 		public static bool isHeld(string actionName)

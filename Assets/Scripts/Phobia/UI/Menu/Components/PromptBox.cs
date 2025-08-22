@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Phobia.Graphics;
 using Controls = Phobia.Input.Controls;
 
 namespace Phobia.ui.Menu.Components
@@ -68,6 +69,9 @@ namespace Phobia.ui.Menu.Components
         private Color originalBackgroundColor;
         private Color originalIconColor;
 
+        // PhobiaSprite for prompt visuals/animation
+        private PhobiaSprite promptSprite;
+
         // Events
 
         public System.Action OnPromptShown;
@@ -77,7 +81,6 @@ namespace Phobia.ui.Menu.Components
         private void Awake()
         {
             // Setup canvas group for fading
-
             canvasGroup = GetComponent<CanvasGroup>();
             if (canvasGroup == null)
             {
@@ -85,7 +88,6 @@ namespace Phobia.ui.Menu.Components
             }
 
             // Setup audio source
-
             if (audioSource == null)
             {
                 audioSource = gameObject.AddComponent<AudioSource>();
@@ -93,7 +95,6 @@ namespace Phobia.ui.Menu.Components
             }
 
             // Store original colors
-
             if (backgroundImage != null)
             {
                 originalBackgroundColor = backgroundImage.color;
@@ -104,14 +105,24 @@ namespace Phobia.ui.Menu.Components
             }
 
             // Setup button if provided
-
             if (confirmButton != null)
             {
                 confirmButton.onClick.AddListener(ConfirmPrompt);
             }
 
-            // Initially hide the prompt
+            // Setup PhobiaSprite for prompt visuals/animation
+            if (promptSprite == null)
+            {
+                // Create PhobiaSprite as child for prompt visuals
+                var spriteGO = new GameObject("PromptSprite");
+                spriteGO.transform.SetParent(transform, false);
+                promptSprite = spriteGO.AddComponent<PhobiaSprite>();
+                // Load default prompt sprite (replace path as needed)
+                promptSprite.LoadTexture("UI/Prompt/prompt_box");
+                promptSprite.ApplyConfiguration();
+            }
 
+            // Initially hide the prompt
             SetVisibility(false, false);
         }
 
@@ -128,6 +139,11 @@ namespace Phobia.ui.Menu.Components
             if (isVisible && !isAnimating)
             {
                 HandleInput();
+                // Play idle animation if visible and not animating
+                if (promptSprite != null && !promptSprite.IsAnimationPlaying)
+                {
+                    promptSprite.PlayAnimation("PromptIdle");
+                }
             }
         }
 
@@ -157,7 +173,6 @@ namespace Phobia.ui.Menu.Components
             promptType = type;
 
             // Update UI elements
-
             if (messageText != null)
             {
                 messageText.text = promptMessage;
@@ -166,8 +181,13 @@ namespace Phobia.ui.Menu.Components
             ApplyPromptTypeStyle();
             PlayShowSound();
 
-            // Start fade in animation
+            // Play show animation on sprite
+            if (promptSprite != null)
+            {
+                promptSprite.PlayAnimation("PromptShow");
+            }
 
+            // Start fade in animation
             if (fadeCoroutine != null)
             {
                 StopCoroutine(fadeCoroutine);
@@ -175,7 +195,6 @@ namespace Phobia.ui.Menu.Components
             fadeCoroutine = StartCoroutine(FadeIn());
 
             // Start flashing effect if enabled
-
             if (enableFlashing && (promptType == PromptType.Warning || promptType == PromptType.Error))
             {
                 StartFlashing();
@@ -184,7 +203,6 @@ namespace Phobia.ui.Menu.Components
             OnPromptShown?.Invoke();
 
             // Auto hide if specified
-
             if (autoHideDelay > 0)
             {
                 Invoke(nameof(HidePrompt), autoHideDelay);
@@ -204,8 +222,13 @@ namespace Phobia.ui.Menu.Components
 
             StopFlashing();
 
-            // Start fade out animation
+            // Play hide animation on sprite
+            if (promptSprite != null)
+            {
+                promptSprite.PlayAnimation("PromptHide");
+            }
 
+            // Start fade out animation
             if (fadeCoroutine != null)
             {
                 StopCoroutine(fadeCoroutine);
@@ -227,6 +250,11 @@ namespace Phobia.ui.Menu.Components
             }
 
             PlayConfirmSound();
+            // Play confirm animation on sprite
+            if (promptSprite != null)
+            {
+                promptSprite.PlayAnimation("PromptConfirm");
+            }
             OnPromptConfirmed?.Invoke();
             HidePrompt();
         }
@@ -238,15 +266,30 @@ namespace Phobia.ui.Menu.Components
                 ConfirmPrompt();
                 return;
             }
-
-            foreach (var actionName in acceptedActions)
+            // Mouse hover animation (optional)
+            if (confirmButton != null && IsMouseOverButton())
             {
-                if (Controls.isPressed(actionName))
+                if (promptSprite != null)
                 {
-                    ConfirmPrompt();
-                    return;
+                    promptSprite.PlayAnimation("PromptHover");
                 }
             }
+        }
+
+        private bool IsMouseOverButton()
+        {
+            if (confirmButton == null)
+			{
+				return false;
+			}
+			// Simple check: is mouse over button rect
+			var pointer = UnityEngine.EventSystems.EventSystem.current;
+            if (pointer == null)
+			{
+				return false;
+			}
+
+			return pointer.currentSelectedGameObject == confirmButton.gameObject;
         }
 
         private bool IsAnyControlPressed()

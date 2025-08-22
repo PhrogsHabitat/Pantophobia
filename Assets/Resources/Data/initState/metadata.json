@@ -20,5 +20,7 @@
             "numerator": 4,
             "denominator": 4
         }
-    ]
+    ],
+    "forceNoMusic": true,
+    "isLevel": true
 }

@@ -116,21 +116,25 @@ namespace Phobia.Input
 
             private void OnPerformed(InputAction.CallbackContext context)
             {
-                // Handle different input types
+				// Handle different input types
+				if (Constants.EDITOR_DEBUG)
+				{
+					Debug.Log($"[PhobiaInput] {Name} performed: {context.ReadValueAsObject()}");
+				}
                 if (context.valueType == typeof(bool))
-                {
-                    UpdateBoolState(context.ReadValueAsButton());
-                }
-                else if (context.valueType == typeof(Vector2))
-                {
-                    _vector2Value = context.ReadValue<Vector2>();
-                    UpdateBoolState(_vector2Value.magnitude > 0.1f);
-                }
-                else if (context.valueType == typeof(float))
-                {
-                    _floatValue = context.ReadValue<float>();
-                    UpdateBoolState(_floatValue > 0.1f);
-                }
+				{
+					UpdateBoolState(context.ReadValueAsButton());
+				}
+				else if (context.valueType == typeof(Vector2))
+				{
+					_vector2Value = context.ReadValue<Vector2>();
+					UpdateBoolState(_vector2Value.magnitude > 0.1f);
+				}
+				else if (context.valueType == typeof(float))
+				{
+					_floatValue = context.ReadValue<float>();
+					UpdateBoolState(_floatValue > 0.1f);
+				}
             }
 
 			private void OnStarted(InputAction.CallbackContext context)
@@ -536,33 +540,29 @@ namespace Phobia.Input
             // Create actions based on control scheme
             if (Config.controlScheme == "PhobiaKeyboard")
             {
-                // Keyboard default bindings
-                _ui_up = CreateAction("UI/Up", InputActionType.Button, "<Keyboard>/w");
-                _ui_down = CreateAction("UI/Down", InputActionType.Button, "<Keyboard>/s");
-                _ui_left = CreateAction("UI/Left", InputActionType.Button, "<Keyboard>/a");
-                _ui_right = CreateAction("UI/Right", InputActionType.Button, "<Keyboard>/d");
+                // Keyboard default bindings - FIXED: Now properly adding bindings
+                _ui_up = CreateActionWithBinding("UI/Up", InputActionType.Button, "<Keyboard>/w", "<Keyboard>/upArrow");
+                _ui_down = CreateActionWithBinding("UI/Down", InputActionType.Button, "<Keyboard>/s", "<Keyboard>/downArrow");
+                _ui_left = CreateActionWithBinding("UI/Left", InputActionType.Button, "<Keyboard>/a", "<Keyboard>/leftArrow");
+                _ui_right = CreateActionWithBinding("UI/Right", InputActionType.Button, "<Keyboard>/d", "<Keyboard>/rightArrow");
 
-                _note_up = CreateAction("Note/Up", InputActionType.Button, "<Keyboard>/upArrow");
-                _note_down = CreateAction("Note/Down", InputActionType.Button, "<Keyboard>/downArrow");
-                _note_left = CreateAction("Note/Left", InputActionType.Button, "<Keyboard>/leftArrow");
-                _note_right = CreateAction("Note/Right", InputActionType.Button, "<Keyboard>/rightArrow");
+                _note_up = CreateActionWithBinding("Note/Up", InputActionType.Button, "<Keyboard>/upArrow", "<Keyboard>/w");
+                _note_down = CreateActionWithBinding("Note/Down", InputActionType.Button, "<Keyboard>/downArrow", "<Keyboard>/s");
+                _note_left = CreateActionWithBinding("Note/Left", InputActionType.Button, "<Keyboard>/leftArrow", "<Keyboard>/a");
+                _note_right = CreateActionWithBinding("Note/Right", InputActionType.Button, "<Keyboard>/rightArrow", "<Keyboard>/d");
 
-                _accept = CreateAction("Actions/Accept", InputActionType.Button, "<Keyboard>/enter");
-                _back = CreateAction("Actions/Back", InputActionType.Button, "<Keyboard>/escape");
-                _pause = CreateAction("Actions/Pause", InputActionType.Button, "<Keyboard>/p");
-                _reset = CreateAction("Actions/Reset", InputActionType.Button, "<Keyboard>/r");
+                _accept = CreateActionWithBinding("Actions/Accept", InputActionType.Button, "<Keyboard>/enter", "<Keyboard>/space", "<Keyboard>/z");
+                _back = CreateActionWithBinding("Actions/Back", InputActionType.Button, "<Keyboard>/escape", "<Keyboard>/x");
+                _pause = CreateActionWithBinding("Actions/Pause", InputActionType.Button, "<Keyboard>/escape", "<Keyboard>/p");
+                _reset = CreateActionWithBinding("Actions/Reset", InputActionType.Button, "<Keyboard>/r");
 
-                _move = CreateAction("Movement/Move", InputActionType.Value, "<Gamepad>/leftStick");
-
-                // Mouse look bindings (if applicable)
-                if (Config.lockAndHideCursor)
-                {
-                    _move.UnityAction.AddCompositeBinding("2DVector")
-                        .With("Up", "<Mouse>/delta/y")
-                        .With("Down", "<Mouse>/delta/y")
-                        .With("Left", "<Mouse>/delta/x")
-                        .With("Right", "<Mouse>/delta/x");
-                }
+                // Movement action with composite binding
+                _move = CreateAction("Movement/Move", InputActionType.Value);
+                _move.UnityAction.AddCompositeBinding("2DVector")
+                    .With("Up", "<Keyboard>/w")
+                    .With("Down", "<Keyboard>/s")
+                    .With("Left", "<Keyboard>/a")
+                    .With("Right", "<Keyboard>/d");
             }
             else if (Config.controlScheme == "PhobiaGamepad")
             {
@@ -605,54 +605,71 @@ namespace Phobia.Input
             }
 
             // Save the asset to disk (for debugging)
-#if UNITY_EDITOR
+		#if UNITY_EDITOR
 			UnityEditor.AssetDatabase.CreateAsset(_inputAsset, "Assets/PhobiaInputActions.asset");
 			UnityEditor.AssetDatabase.SaveAssets();
-#else
+		#else
             Debug.LogWarning("[INPUT DEBUG] Asset saving is only available in the Unity Editor.");
-#endif
+		#endif
         }
 
-        #endregion
+		#endregion
 
-        public PhobiaAction AddAction(string actionName, params string[] bindings)
+		private PhobiaAction CreateActionWithBinding(string name, InputActionType type, params string[] bindings)
         {
-            // Disable the asset before modifying
-            if (_inputAsset.enabled)
-            {
-                _inputAsset.Disable();
-            }
-
-            // Remove existing action if present
-            var existingAction = _actionMap.actions.FirstOrDefault(a => a.name == actionName);
-            if (existingAction != null)
-            {
-                UnityEngine.InputSystem.InputActionSetupExtensions.RemoveAction(_inputAsset, actionName);
-            }
-            if (_actions.ContainsKey(actionName))
-            {
-                _actions[actionName].Dispose();
-                _actions.Remove(actionName);
-            }
-            var action = _actionMap.AddAction(actionName, InputActionType.Button);
+            var action = CreateAction(name, type);
             foreach (var binding in bindings)
             {
-                action.AddBinding(binding);
+                action.UnityAction.AddBinding(binding);
             }
-
-            // Re-enable the asset if it was previously enabled
-            if (Config.autoEnable)
-            {
-                _inputAsset.Enable();
-            }
-            var phobiaAction = new PhobiaAction(actionName, action);
-            _actions[actionName] = phobiaAction;
-            return phobiaAction;
+            return action;
         }
+
+        public PhobiaAction AddAction(string actionName, params string[] bindings)
+		{
+			// Disable the asset before modifying
+			if (_inputAsset.enabled)
+			{
+				_inputAsset.Disable();
+			}
+
+			// Remove existing action if present
+			var existingAction = _actionMap.actions.FirstOrDefault(a => a.name == actionName);
+			if (existingAction != null)
+			{
+				UnityEngine.InputSystem.InputActionSetupExtensions.RemoveAction(_inputAsset, actionName);
+			}
+			if (_actions.ContainsKey(actionName))
+			{
+				_actions[actionName].Dispose();
+				_actions.Remove(actionName);
+			}
+			var action = _actionMap.AddAction(actionName, InputActionType.Button);
+			foreach (var binding in bindings)
+			{
+				action.AddBinding(binding);
+			}
+
+			// Re-enable the asset if it was previously enabled
+			if (Config.autoEnable)
+			{
+				_inputAsset.Enable();
+			}
+			var phobiaAction = new PhobiaAction(actionName, action);
+			_actions[actionName] = phobiaAction;
+			return phobiaAction;
+		}
 
         public bool CheckPressed(string actionName)
         {
-            return _actions.ContainsKey(actionName) && _actions[actionName].CheckJustPressed();
+            bool exists = _actions.ContainsKey(actionName);
+            if (!exists)
+            {
+                return false;
+            }
+            var action = _actions[actionName];
+            bool pressed = action.CheckPressed();
+            return pressed;
         }
 
         public bool Check(string actionName)

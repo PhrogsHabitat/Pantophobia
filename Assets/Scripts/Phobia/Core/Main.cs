@@ -1,5 +1,5 @@
 using UnityEngine;
-using Controls = Phobia.Input.Controls;
+using Phobia.Input;
 using Phobia.Gameplay;
 using Phobia.RegistryShit;
 

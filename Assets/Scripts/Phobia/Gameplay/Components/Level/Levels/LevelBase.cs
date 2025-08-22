@@ -7,7 +7,7 @@ namespace Phobia.Gameplay.Components.Level.Levels
 	{
 		[HideInInspector] public PlayState playState;
 		protected Dictionary<string, LevelProp> props = new Dictionary<string, LevelProp>();
-		
+
 		protected virtual void Awake()
 		{
 			if (playState == null && PlayState.Instance != null)
