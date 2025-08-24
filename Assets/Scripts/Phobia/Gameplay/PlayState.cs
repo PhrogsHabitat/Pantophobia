@@ -242,30 +242,52 @@ namespace Phobia.Gameplay
 		public static UnityEngine.Camera FindOrCreatePhobiaCamera()
 		{
 			var phobiaCamera = FindFirstObjectByType<Phobia.Camera.PhobiaCamera>();
+			GameObject camGO = null;
+			UnityEngine.Camera camera = null;
 			if (phobiaCamera != null)
 			{
 				Debug.Log("[PlayState] Found existing PhobiaCamera");
-				return phobiaCamera.GetComponent<UnityEngine.Camera>();
+				camGO = phobiaCamera.gameObject;
+				camera = phobiaCamera.GetComponent<UnityEngine.Camera>();
 			}
-
-			var mainCam = UnityEngine.Camera.main;
-			if (mainCam != null)
+			else
 			{
-				var existingPhobiaCam = mainCam.GetComponent<Phobia.Camera.PhobiaCamera>();
-				if (existingPhobiaCam == null)
+				var mainCam = UnityEngine.Camera.main;
+				if (mainCam != null)
 				{
-					mainCam.gameObject.AddComponent<Phobia.Camera.PhobiaCamera>();
-					Debug.Log("[PlayState] Added PhobiaCamera component to existing main camera");
+					var existingPhobiaCam = mainCam.GetComponent<Phobia.Camera.PhobiaCamera>();
+					if (existingPhobiaCam == null)
+					{
+						mainCam.gameObject.AddComponent<Phobia.Camera.PhobiaCamera>();
+						Debug.Log("[PlayState] Added PhobiaCamera component to existing main camera");
+					}
+					camGO = mainCam.gameObject;
+					camera = mainCam;
 				}
-				return mainCam;
+				else
+				{
+					camGO = new GameObject("PhobiaCamera");
+					camera = camGO.AddComponent<UnityEngine.Camera>();
+					camGO.AddComponent<Phobia.Camera.PhobiaCamera>();
+					camera.orthographic = true;
+					camGO.tag = "MainCamera";
+					Debug.Log("[PlayState] Created new PhobiaCamera");
+				}
 			}
 
-			var camGO = new GameObject("PhobiaCamera");
-			var camera = camGO.AddComponent<UnityEngine.Camera>();
-			var phobiaCam = camGO.AddComponent<Phobia.Camera.PhobiaCamera>();
-			camera.orthographic = true;
-			camGO.tag = "MainCamera";
-			Debug.Log("[PlayState] Created new PhobiaCamera");
+			// Ensure a FollowPoint exists as a child of the camera
+			var followPoint = camGO.GetComponentInChildren<FollowPoint>();
+			if (followPoint == null)
+			{
+				var followGO = new GameObject("FollowPoint");
+				followGO.transform.SetParent(camGO.transform, false);
+				followPoint = followGO.AddComponent<FollowPoint>();
+			}
+			// Assign to PlayState.cameraFollowPoint if possible
+			if (PlayState.Instance != null)
+			{
+				PlayState.Instance.cameraFollowPoint = followPoint.transform;
+			}
 
 			return camera;
 		}

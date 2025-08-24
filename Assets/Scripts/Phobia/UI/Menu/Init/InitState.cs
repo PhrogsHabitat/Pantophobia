@@ -10,7 +10,6 @@ namespace Phobia.ui.Menu.Init
 	public class InitState : Phobia.ui.UIBase
 	{
 		private PromptBox warningPrompt;
-		private PhobiaSound confirmSound;
 		private bool isFirstTime;
 		private bool promptShown;
 
@@ -19,9 +18,6 @@ namespace Phobia.ui.Menu.Init
 			base.Initialize(playStateRef);
 			isFirstTime = !PlayerPrefs.HasKey("HasSeenFlashingLightsWarning");
 			promptShown = false;
-
-			// Load confirmation sound (modular, from Resources)
-			confirmSound = PhobiaSound.Create(Resources.Load<AudioClip>("Audio/UI/confirm"), 1f, false, false);
 		}
 
 		public override void Create()
@@ -45,12 +41,17 @@ namespace Phobia.ui.Menu.Init
 		private void ShowWarningPrompt()
 		{
 			// Use modular PromptBox for warning
-			warningPrompt = PromptBox.CreatePromptBox(
+			warningPrompt = PromptBox.CreateWorldSpacePromptBox(
 				uiCanvas.transform,
 				"Warning: This game contains flashing lights and visual effects that may trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.",
-				PromptBox.PromptType.Warning
+				PromptBox.PromptType.Warning,
+				new Vector3(4, 2.5f, -5),
+				new Vector2(600, 200)
 			);
+
+
 			warningPrompt.OnPromptConfirmed += OnContinueClicked;
+
 			warningPrompt.ShowPrompt();
 			promptShown = true;
 		}
@@ -59,13 +60,10 @@ namespace Phobia.ui.Menu.Init
 		{
 			PlayerPrefs.SetInt("HasSeenFlashingLightsWarning", 1);
 			PlayerPrefs.Save();
-			if (confirmSound != null)
-			{
-				confirmSound.Play();
-			}
+			// Sound and animation handled by PromptBox
 			if (warningPrompt != null)
 			{
-				warningPrompt.HidePrompt();
+				warningPrompt.ConfirmPrompt(); // Plays sound and animation, then hides
 				Destroy(warningPrompt.gameObject);
 			}
 			promptShown = false;
@@ -86,6 +84,11 @@ namespace Phobia.ui.Menu.Init
 			if (promptShown && Controls.isPressed("accept"))
 			{
 				OnContinueClicked();
+			}
+
+			if (Controls.isPressed("ui_up"))
+			{
+				warningPrompt.ConfirmPrompt();
 			}
 		}
 

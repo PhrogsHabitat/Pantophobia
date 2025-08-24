@@ -199,7 +199,7 @@ namespace Phobia.Gameplay.Components.Level
                 return;
             }
 
-            sprite.LoadSparrowAtlas(atlasPath, spriteName);
+            sprite.LoadSparrowXML(atlasPath, spriteName);
         }
 
         /// <summary>
