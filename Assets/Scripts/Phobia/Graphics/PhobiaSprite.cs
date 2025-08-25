@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 using System.Xml;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -117,7 +118,6 @@ namespace Phobia.Graphics
 
         #endregion
 
-
         #region Public Properties
 
         [SerializeField] private SpriteConfig _config;
@@ -128,7 +128,7 @@ namespace Phobia.Graphics
         }
 
         public string CurrentAnimation { get; private set; }
-    public bool IsAnimationDynamic => _animationComponent != null && _sparrowSetupDone;
+        public bool IsAnimationPlaying => _animationCoroutine != null;
         public bool IsVisible => _renderer != null && _renderer.enabled;
         public Color BaseColor { get; private set; } = Color.white;
 
@@ -136,31 +136,44 @@ namespace Phobia.Graphics
 
         #region Private Fields
 
-    private SpriteRenderer _renderer;
-    private Animation _animationComponent; // Using legacy Animation instead of Animator for runtime
-    private Coroutine _fadeCoroutine;
-    private Coroutine _colorTweenCoroutine;
+        private SpriteRenderer _renderer;
+        private Coroutine _fadeCoroutine;
+        private Coroutine _colorTweenCoroutine;
+        private Coroutine _animationCoroutine;
 
-    // Sparrow animation support
-    private Dictionary<string, AnimationClip> _sparrowAnimations = new Dictionary<string, AnimationClip>();
-    private bool _sparrowSetupDone = false;
+        // Sparrow animation support
+        private Dictionary<string, List<Sprite>> _sparrowAnimationFrames = new Dictionary<string, List<Sprite>>();
+        private Dictionary<string, float> _animationFrameRates = new Dictionary<string, float>();
+        private Dictionary<string, bool> _animationLoopSettings = new Dictionary<string, bool>();
+        private Dictionary<string, string> _animationAliases = new Dictionary<string, string>(); // alias -> original
+        private Dictionary<string, float> _aliasFrameRates = new Dictionary<string, float>(); // alias -> frameRate
+        private bool _sparrowSetupDone = false;
 
-		#endregion
+        #endregion
 
-		#region Unity Lifecycle
+        #region Unity Lifecycle
 
         private void Awake()
         {
             _renderer = GetComponent<SpriteRenderer>();
-            _animationComponent = GetComponent<Animation>();
-
-            // Add Animation component if needed
-            if (_animationComponent == null && Config.enableAnimations)
-            {
-                _animationComponent = gameObject.AddComponent<Animation>();
-            }
-
             ApplyConfiguration();
+        }
+
+        private void OnDestroy()
+        {
+            // Stop all coroutines when object is destroyed
+            if (_animationCoroutine != null)
+            {
+                StopCoroutine(_animationCoroutine);
+            }
+            if (_fadeCoroutine != null)
+            {
+                StopCoroutine(_fadeCoroutine);
+            }
+            if (_colorTweenCoroutine != null)
+            {
+                StopCoroutine(_colorTweenCoroutine);
+            }
         }
 
         #endregion
@@ -223,7 +236,6 @@ namespace Phobia.Graphics
 
         #endregion
 
-
         #region Configuration Management
 
         /// <summary>
@@ -243,7 +255,6 @@ namespace Phobia.Graphics
                 _renderer.color = color;
                 BaseColor = color;
             }
-            // No animator speed to set for legacy Animation
         }
 
         /// <summary>
@@ -295,7 +306,6 @@ namespace Phobia.Graphics
             }
         }
 
-
         /// <summary>
         /// Load sprite from Sparrow atlas and auto-setup animations from XML
         /// </summary>
@@ -326,170 +336,125 @@ namespace Phobia.Graphics
             ParseSparrowXML(xmlAsset.text, texture, spriteName);
         }
 
-
         /// <summary>
-        /// Parse Sparrow XML and auto-create AnimationClips for each animation
-        /// </summary>
-        private void ParseSparrowXML(string xmlText, Texture2D texture, string defaultSpriteName)
-        {
-            if (string.IsNullOrEmpty(xmlText) || texture == null)
-            {
-                Debug.LogError("[PhobiaSprite] Invalid XML or texture for Sparrow parsing");
-                return;
-            }
+		/// Parse Sparrow XML and auto-create AnimationClips for each animation
+		/// </summary>
+		private void ParseSparrowXML(string xmlText, Texture2D texture, string defaultSpriteName)
+		{
+			if (string.IsNullOrEmpty(xmlText) || texture == null)
+			{
+				Debug.LogError("[PhobiaSprite] Invalid XML or texture for Sparrow parsing");
+				return;
+			}
 
-            // Parse XML
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlText);
+			try
+			{
+				// Parse XML
+				XmlDocument xmlDoc = new XmlDocument();
+				xmlDoc.LoadXml(xmlText);
 
-            XmlNode atlasNode = xmlDoc.SelectSingleNode("//TextureAtlas");
-            if (atlasNode == null)
-            {
-                Debug.LogError("[PhobiaSprite] TextureAtlas node not found in XML.");
-                return;
-            }
+				XmlNode atlasNode = xmlDoc.SelectSingleNode("//TextureAtlas");
+				if (atlasNode == null)
+				{
+					Debug.LogError("[PhobiaSprite] TextureAtlas node not found in XML.");
+					return;
+				}
 
-            // Get the original texture size from XML if available
-            int originalWidth = 4096; // Default assumption
-            int originalHeight = 4096; // Default assumption
-            if (atlasNode.Attributes["width"] != null && atlasNode.Attributes["height"] != null)
-            {
-                originalWidth = int.Parse(atlasNode.Attributes["width"].Value);
-                originalHeight = int.Parse(atlasNode.Attributes["height"].Value);
-            }
+				// Get the original texture size from XML if available
+				int originalWidth = 4096; // Default assumption
+				int originalHeight = 4096; // Default assumption
+				if (atlasNode.Attributes["width"] != null && atlasNode.Attributes["height"] != null)
+				{
+					originalWidth = int.Parse(atlasNode.Attributes["width"].Value);
+					originalHeight = int.Parse(atlasNode.Attributes["height"].Value);
+				}
 
-            // Calculate scale factors
-            float scaleX = (float)texture.width / originalWidth;
-            float scaleY = (float)texture.height / originalHeight;
+				// Calculate scale factors
+				float scaleX = (float)texture.width / originalWidth;
+				float scaleY = (float)texture.height / originalHeight;
 
-            // Parse all sub-textures
-            var subTextures = new Dictionary<string, Sprite>();
-            foreach (XmlNode node in atlasNode.SelectNodes("SubTexture"))
-            {
-                string name = node.Attributes["name"]?.Value;
-                if (string.IsNullOrEmpty(name)) { continue; }
+				// Parse all sub-textures
+				var subTextures = new Dictionary<string, Sprite>();
+				foreach (XmlNode node in atlasNode.SelectNodes("SubTexture"))
+				{
+					string name = node.Attributes["name"]?.Value;
+					if (string.IsNullOrEmpty(name)) { continue; }
 
-                int x = int.Parse(node.Attributes["x"]?.Value ?? "0");
-                int y = int.Parse(node.Attributes["y"]?.Value ?? "0");
-                int width = int.Parse(node.Attributes["width"]?.Value ?? "0");
-                int height = int.Parse(node.Attributes["height"]?.Value ?? "0");
+					int x = int.Parse(node.Attributes["x"]?.Value ?? "0");
+					int y = int.Parse(node.Attributes["y"]?.Value ?? "0");
+					int width = int.Parse(node.Attributes["width"]?.Value ?? "0");
+					int height = int.Parse(node.Attributes["height"]?.Value ?? "0");
 
-                // Scale coordinates to fit the loaded texture
-                int scaledX = Mathf.RoundToInt(x * scaleX);
-                int scaledY = Mathf.RoundToInt(y * scaleY);
-                int scaledWidth = Mathf.RoundToInt(width * scaleX);
-                int scaledHeight = Mathf.RoundToInt(height * scaleY);
+					// Scale coordinates to fit the loaded texture
+					int scaledX = Mathf.RoundToInt(x * scaleX);
+					int scaledY = Mathf.RoundToInt(y * scaleY);
+					int scaledWidth = Mathf.RoundToInt(width * scaleX);
+					int scaledHeight = Mathf.RoundToInt(height * scaleY);
 
-                // Check if the scaled coordinates are within texture bounds
-                if (scaledX + scaledWidth > texture.width || scaledY + scaledHeight > texture.height)
-                {
-                    Debug.LogWarning($"[PhobiaSprite] Scaled coordinates for {name} are outside texture bounds. Skipping.");
-                    continue;
-                }
+					// Check if the scaled coordinates are within texture bounds
+					if (scaledX + scaledWidth > texture.width || scaledY + scaledHeight > texture.height)
+					{
+						Debug.LogWarning($"[PhobiaSprite] Scaled coordinates for {name} are outside texture bounds. Skipping.");
+						continue;
+					}
 
-                // Create sprite (adjust y coordinate for Unity's coordinate system)
-                Rect rect = new Rect(scaledX, texture.height - scaledY - scaledHeight, scaledWidth, scaledHeight);
-                Vector2 pivot = new Vector2(0.5f, 0.5f);
+					// Create sprite (adjust y coordinate for Unity's coordinate system)
+					Rect rect = new Rect(scaledX, texture.height - scaledY - scaledHeight, scaledWidth, scaledHeight);
+					Vector2 pivot = new Vector2(0.5f, 0.5f);
 
-                Sprite sprite = Sprite.Create(texture, rect, pivot, 100);
-                sprite.name = name;
-                subTextures[name] = sprite;
-            }
+					Sprite sprite = Sprite.Create(texture, rect, pivot, 100);
+					sprite.name = name;
+					subTextures[name] = sprite;
+				}
 
-            // Set default sprite
-            if (subTextures.ContainsKey(defaultSpriteName))
-            {
-                _renderer.sprite = subTextures[defaultSpriteName];
-            }
-            else if (subTextures.Count > 0)
-            {
-                // Use first sprite if default not found
-                using (var enumerator = subTextures.Values.GetEnumerator())
-                {
-                    enumerator.MoveNext();
-                    _renderer.sprite = enumerator.Current;
-                }
-            }
+				// Set default sprite
+				if (subTextures.ContainsKey(defaultSpriteName))
+				{
+					_renderer.sprite = subTextures[defaultSpriteName];
+				}
+				else if (subTextures.Count > 0)
+				{
+					// Use first sprite if default not found
+					using (var enumerator = subTextures.Values.GetEnumerator())
+					{
+						enumerator.MoveNext();
+						_renderer.sprite = enumerator.Current;
+					}
+				}
 
-            // Group frames by animation name (remove numbers from end)
-            var animGroups = new Dictionary<string, List<Sprite>>();
-            foreach (var kvp in subTextures)
-            {
-                // Extract base name without frame numbers
-                string baseName = System.Text.RegularExpressions.Regex.Replace(kvp.Key, @"\d+$", "");
+				// Group frames by animation name (remove numbers from end)
+				var animGroups = new Dictionary<string, List<Sprite>>();
+				foreach (var kvp in subTextures)
+				{
+					// Extract base name without frame numbers
+					string baseName = System.Text.RegularExpressions.Regex.Replace(kvp.Key, @"\d+$", "");
 
-                if (!animGroups.ContainsKey(baseName))
-                {
-                    animGroups[baseName] = new List<Sprite>();
-                }
-                animGroups[baseName].Add(kvp.Value);
-            }
+					if (!animGroups.ContainsKey(baseName))
+					{
+						animGroups[baseName] = new List<Sprite>();
+					}
+					animGroups[baseName].Add(kvp.Value);
+				}
 
-            // Sort each animation's frames by name
-            foreach (var anim in animGroups)
-            {
-                anim.Value.Sort((a, b) => string.Compare(a.name, b.name));
-            }
+				// Sort each animation's frames by name
+				foreach (var anim in animGroups)
+				{
+					anim.Value.Sort((a, b) => string.Compare(a.name, b.name));
+					_sparrowAnimationFrames[anim.Key] = anim.Value;
+					_animationFrameRates[anim.Key] = 24f; // Default frame rate
+				}
 
-            // Create AnimationClips
-            foreach (var kvp in animGroups)
-            {
-                if (kvp.Value.Count > 1) // Only create animation if there are multiple frames
-                {
-                    AnimationClip clip = CreateAnimationClip(kvp.Value, kvp.Key);
-                    _sparrowAnimations[kvp.Key] = clip;
+				_sparrowSetupDone = true;
 
-                    // Add to Animation component
-                    if (_animationComponent != null)
-                    {
-                        _animationComponent.AddClip(clip, kvp.Key);
-                    }
-                }
-            }
-
-            _sparrowSetupDone = true;
-        }
-
-
-        /// <summary>
-        /// Create AnimationClip from sprites at runtime
-        /// </summary>
-        private AnimationClip CreateAnimationClip(List<Sprite> sprites, string clipName)
-        {
-            AnimationClip clip = new AnimationClip();
-            clip.name = clipName;
-            clip.frameRate = 30; // Standard frame rate
-#if UNITY_EDITOR
-            // Create curve binding
-            EditorCurveBinding curveBinding = new EditorCurveBinding();
-            curveBinding.type = typeof(SpriteRenderer);
-            curveBinding.propertyName = "m_Sprite";
-            curveBinding.path = ""; // Relative path to object
-
-            // Create keyframes
-            ObjectReferenceKeyframe[] keyframes = new ObjectReferenceKeyframe[sprites.Count];
-            float timePerFrame = 1f / clip.frameRate;
-
-            for (int i = 0; i < sprites.Count; i++)
-            {
-                keyframes[i] = new ObjectReferenceKeyframe();
-                keyframes[i].time = i * timePerFrame;
-                keyframes[i].value = sprites[i];
-            }
-
-            // Set the animation curve
-            AnimationUtility.SetObjectReferenceCurve(clip, curveBinding, keyframes);
-#endif
-            // Set clip settings
-            clip.wrapMode = WrapMode.Loop;
-            clip.legacy = true; // Ensure the clip is marked as legacy for Animation component
-            return clip;
-        }
-
-        /// <summary>
-        /// Setup Animator to use Sparrow AnimationClips
-        /// </summary>
-    // Removed SetupSparrowAnimator and all _animator references (legacy Animation is now used)
+				// Log available animations for debugging
+				Debug.Log($"[PhobiaSprite] Loaded {_sparrowAnimationFrames.Count} animations: {string.Join(", ", _sparrowAnimationFrames.Keys)}");
+			}
+			catch (System.Exception ex)
+			{
+				Debug.LogError($"[PhobiaSprite] Error parsing Sparrow XML: {ex.Message}");
+				_sparrowSetupDone = false;
+			}
+		}
 
         /// <summary>
         /// Create a solid color sprite - simple but effective as hell
@@ -519,78 +484,226 @@ namespace Phobia.Graphics
 
         #endregion
 
-
         #region Animation System
 
+        /// <summary>
+		/// Play animation by name
+		/// </summary>
+		public void PlayAnimation(string animationName)
+		{
+			if (!Config.enableAnimations)
+			{
+				Debug.LogWarning("[PhobiaSprite] Animations disabled");
+				return;
+			}
+
+			// Check if animations are available
+			if (!_sparrowSetupDone || _sparrowAnimationFrames == null || _sparrowAnimationFrames.Count == 0)
+			{
+				Debug.LogWarning($"[PhobiaSprite] No animations loaded. Cannot play '{animationName}'");
+				return;
+			}
+
+			// Check if the requested animation exists
+			if (_sparrowAnimationFrames.ContainsKey(animationName))
+			{
+				// Stop any running animation
+				if (_animationCoroutine != null)
+				{
+					StopCoroutine(_animationCoroutine);
+				}
+
+				// Start new animation
+				_animationCoroutine = StartCoroutine(PlayAnimationRoutine(animationName));
+				CurrentAnimation = animationName;
+				return;
+			}
+
+			Debug.LogWarning($"[PhobiaSprite] Animation '{animationName}' not found! Available animations: {string.Join(", ", _sparrowAnimationFrames.Keys)}");
+
+			// Try to play the first available animation as a fallback
+			if (_sparrowAnimationFrames.Count > 0)
+			{
+				using (var enumerator = _sparrowAnimationFrames.Keys.GetEnumerator())
+				{
+					enumerator.MoveNext();
+					string fallbackAnimation = enumerator.Current;
+					Debug.LogWarning($"[PhobiaSprite] Playing fallback animation: {fallbackAnimation}");
+
+					if (_animationCoroutine != null)
+					{
+						StopCoroutine(_animationCoroutine);
+					}
+
+					_animationCoroutine = StartCoroutine(PlayAnimationRoutine(fallbackAnimation));
+					CurrentAnimation = fallbackAnimation;
+				}
+			}
+		}
 
         /// <summary>
-        /// Play animation by name
+        /// Animation coroutine that cycles through frames
         /// </summary>
-        public void PlayAnimation(string animationName)
+        private IEnumerator PlayAnimationRoutine(string animationName)
         {
-            if (!_config.enableAnimations || _animationComponent == null)
+            var frames = _sparrowAnimationFrames[animationName];
+            int currentFrame = 0;
+
+            // Get frame rate for this animation (default to 24 FPS if not specified)
+            float frameRate = _animationFrameRates.ContainsKey(animationName) ?
+                _animationFrameRates[animationName] * _config.animationSpeed : 24f * _config.animationSpeed;
+
+            float frameDelay = 1f / frameRate;
+
+            // Use per-animation loop setting if available
+            bool shouldLoop = GetAnimationLoop(animationName);
+
+            Debug.Log($"[PhobiaSprite] Playing animation '{animationName}' at {frameRate} FPS with {frames.Count} frames, loop={shouldLoop}");
+
+            while (frames.Count > 0)
             {
-                Debug.LogWarning("[PhobiaSprite] Animations disabled or no animation component available");
-                return;
+                _renderer.sprite = frames[currentFrame];
+                currentFrame = (currentFrame + 1) % frames.Count;
+
+                // If not looping and we're at the last frame, break
+                if (!shouldLoop && currentFrame == 0)
+                {
+                    break;
+                }
+
+                yield return new WaitForSeconds(frameDelay);
             }
 
-            if (_sparrowSetupDone && _sparrowAnimations.ContainsKey(animationName))
-            {
-                _animationComponent.Play(animationName);
-                CurrentAnimation = animationName;
-                return;
-            }
-
-            Debug.LogWarning($"[PhobiaSprite] Animation '{animationName}' not found!");
+            _animationCoroutine = null;
+            Debug.Log($"[PhobiaSprite] Animation '{animationName}' finished playing");
         }
 
+        /// <summary>
+        /// Set custom frame rate for an animation
+        /// </summary>
+        public void SetAnimationFrameRate(string animationName, float frameRate)
+        {
+            if (_sparrowAnimationFrames.ContainsKey(animationName))
+            {
+                _animationFrameRates[animationName] = frameRate;
+            }
+            else
+            {
+                Debug.LogWarning($"[PhobiaSprite] Cannot set frame rate for unknown animation: {animationName}");
+            }
+        }
+
+        /// <summary>
+        /// Set whether a specific animation should loop.
+        /// </summary>
+        public void SetAnimationLoop(string animationName, bool shouldLoop)
+        {
+            _animationLoopSettings[animationName] = shouldLoop;
+        }
+
+        /// <summary>
+        /// Get whether a specific animation should loop. Returns config default if not set.
+        /// </summary>
+        public bool GetAnimationLoop(string animationName)
+        {
+            if (_animationLoopSettings.TryGetValue(animationName, out bool loop))
+			{
+				return loop;
+			}
+
+			return Config.loopAnimations;
+        }
 
         /// <summary>
         /// Stop current animation
         /// </summary>
         public void StopAnimation()
         {
-            if (_animationComponent != null)
+            if (_animationCoroutine != null)
             {
-                _animationComponent.Stop();
+                StopCoroutine(_animationCoroutine);
+                _animationCoroutine = null;
             }
         }
 
+        /// <summary>
+        /// Register an animation alias with a custom frame rate.
+        /// </summary>
+        public void AddAnim(string originalAnim, string alias, float frameRate)
+        {
+            if (!_sparrowAnimationFrames.ContainsKey(originalAnim))
+            {
+                Debug.LogWarning($"[PhobiaSprite] Cannot alias unknown animation: {originalAnim}");
+                return;
+            }
+            _animationAliases[alias] = originalAnim;
+            _aliasFrameRates[alias] = frameRate;
+        }
 
-		// (Optional) You may want to implement SetAnimationSpeed for legacy Animation, but it's not supported directly.
+        /// <summary>
+        /// Play an animation by alias or original name, with explicit looping and force options.
+        /// </summary>
+        public void PlayAnim(string aliasOrName, bool shouldLoop = true, bool force = false)
+        {
+            string animName = aliasOrName;
+            if (_animationAliases.TryGetValue(aliasOrName, out var mapped))
+			{
+				animName = mapped;
+			}
 
-		#endregion
+			if (!_sparrowAnimationFrames.ContainsKey(animName))
+            {
+                Debug.LogWarning($"[PhobiaSprite] Animation '{aliasOrName}' (resolved as '{animName}') not found.");
+                return;
+            }
 
-		#region Visual Effects
+            // Set loop for this play only
+            _animationLoopSettings[animName] = shouldLoop;
 
-		/// <summary>
-		/// Fade out sprite
-		/// </summary>
-		public void FadeOut(float duration)
-		{
-			StartFade(0, duration);
-		}
+            // Set frame rate if alias has one
+            if (_aliasFrameRates.TryGetValue(aliasOrName, out float frameRate))
+			{
+				_animationFrameRates[animName] = frameRate;
+			}
 
-		/// <summary>
-		/// Fade in sprite
-		/// </summary>
-		public void FadeIn(float duration)
-		{
-			StartFade(1, duration);
-		}
+			if (force || CurrentAnimation != animName || !IsAnimationPlaying)
+            {
+                PlayAnimation(animName);
+            }
+        }
 
-		/// <summary>
-		/// Fade to specific alpha value
-		/// </summary>
-		public void FadeTo(float targetAlpha, float duration)
-		{
-			StartFade(targetAlpha, duration);
-		}
+        #endregion
 
-		/// <summary>
-		/// Start fade operation with proper coroutine management
-		/// </summary>
-		private void StartFade(float targetAlpha, float duration)
+        #region Visual Effects
+
+        /// <summary>
+        /// Fade out sprite
+        /// </summary>
+        public void FadeOut(float duration)
+        {
+            StartFade(0, duration);
+        }
+
+        /// <summary>
+        /// Fade in sprite
+        /// </summary>
+        public void FadeIn(float duration)
+        {
+            StartFade(1, duration);
+        }
+
+        /// <summary>
+        /// Fade to specific alpha value
+        /// </summary>
+        public void FadeTo(float targetAlpha, float duration)
+        {
+            StartFade(targetAlpha, duration);
+        }
+
+        /// <summary>
+        /// Start fade operation with proper coroutine management
+        /// </summary>
+        private void StartFade(float targetAlpha, float duration)
         {
             if (!_config.enableFading)
             {
@@ -625,7 +738,6 @@ namespace Phobia.Graphics
             SetAlpha(targetAlpha);
             _fadeCoroutine = null;
         }
-
 
         #endregion
 
@@ -723,19 +835,6 @@ namespace Phobia.Graphics
             PhobiaSprite clonedSprite = clone.GetComponent<PhobiaSprite>();
             clonedSprite.Config = _config; // Copy config
             return clonedSprite;
-        }
-
-        /// <summary>
-
-        /// <summary>
-        /// Check if animation is playing
-        /// </summary>
-        public bool IsAnimationPlaying
-        {
-            get
-            {
-                return _animationComponent != null && _animationComponent.isPlaying;
-            }
         }
 
         /// <summary>

@@ -2,7 +2,7 @@
     "levelId": "initState",
     "displayName": "InitState",
     "defaultZoom": 2.0,
-    "bgColor": {"r": 0.1, "g": 0.1, "b": 0.3, "a": 1.0},
+    "bgColor": {"r": 0.1, "g": 0.1, "b": 0.1, "a": 1.0},
     "songId": "initState",
     "bpm": 155,
     "songSigNum": 4,

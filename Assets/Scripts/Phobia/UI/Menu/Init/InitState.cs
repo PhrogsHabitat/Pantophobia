@@ -4,101 +4,162 @@ using Phobia.Graphics;
 using Phobia.Audio;
 using Phobia.Input;
 using Phobia.ui.Menu.Components;
+using UnityEngine.UI;
+using System.Collections;
 
 namespace Phobia.ui.Menu.Init
 {
-	public class InitState : Phobia.ui.UIBase
-	{
-		private PromptBox warningPrompt;
-		private bool isFirstTime;
-		private bool promptShown;
+    public class InitState : Phobia.ui.UIBase
+    {
+        private PromptBox warningPrompt;
+        private bool isFirstTime;
+        private bool promptShown;
 
-		public override void Initialize(PlayState playStateRef = null)
+        public override void Initialize(PlayState playStateRef = null)
+        {
+            base.Initialize(playStateRef);
+            isFirstTime = !PlayerPrefs.HasKey("HasSeenFlashingLightsWarning");
+            promptShown = false;
+        }
+
+        public override void Create()
+        {
+            if (!isInitialized)
+            {
+                Initialize(PlayState.Instance);
+            }
+            base.Create();
+
+            if (isFirstTime)
+            {
+                ShowWarningPrompt();
+            }
+            else
+            {
+                ContinueToNextState();
+            }
+        }
+
+        private void ShowWarningPrompt()
 		{
-			base.Initialize(playStateRef);
-			isFirstTime = !PlayerPrefs.HasKey("HasSeenFlashingLightsWarning");
-			promptShown = false;
-		}
+			// Create a dedicated canvas for the prompt
+			GameObject canvasObj = new GameObject("PromptCanvas");
+			Canvas canvas = canvasObj.AddComponent<Canvas>();
+			canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+			canvas.sortingOrder = 100; // High sorting order to ensure it's on top
 
-		public override void Create()
-		{
-			if (!isInitialized)
-			{
-				Initialize(PlayState.Instance);
-			}
-			base.Create();
+			CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+			scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+			scaler.referenceResolution = new Vector2(1920, 1080);
+			scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+			scaler.matchWidthOrHeight = 0.5f;
 
-			if (isFirstTime)
-			{
-				ShowWarningPrompt();
-			}
-			else
-			{
-				ContinueToNextState();
-			}
-		}
+			canvasObj.AddComponent<GraphicRaycaster>();
 
-		private void ShowWarningPrompt()
-		{
-			// Use modular PromptBox for warning
-			warningPrompt = PromptBox.CreateWorldSpacePromptBox(
-				uiCanvas.transform,
-				"Warning: This game contains flashing lights and visual effects that may trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.",
+			Vector2 promptSize = new Vector2(800, 300);
+
+			warningPrompt = PromptBox.CreatePromptBox(
+				canvas.transform,
+				"WARNING: This game contains flashing lights and visual effects that may trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.",
 				PromptBox.PromptType.Warning,
-				new Vector3(4, 2.5f, -5),
-				new Vector2(600, 200)
+				promptSize
 			);
 
+			// Center the prompt (PromptBox handles its own scaling/animation now)
+			if (warningPrompt != null)
+			{
+				RectTransform rect = warningPrompt.GetComponent<RectTransform>();
+				if (rect != null)
+				{
+					rect.anchorMin = new Vector2(0.5f, 0.5f);
+					rect.anchorMax = new Vector2(0.5f, 0.5f);
+					rect.pivot = new Vector2(0.5f, 0.5f);
+					rect.anchoredPosition = Vector2.zero;
+					rect.sizeDelta = promptSize;
+					// rect.localScale = Vector3.one * 140.5f; // No longer needed if PromptBox handles scaling
+
+					Debug.Log($"[InitState] PromptBox centered: scale={rect.localScale}");
+				}
+			}
 
 			warningPrompt.OnPromptConfirmed += OnContinueClicked;
 
+			// Wait a frame before showing the prompt to ensure everything is set up
+			StartCoroutine(DelayedShowPrompt());
+		}
+
+		private IEnumerator DelayedShowPrompt()
+		{
+			yield return null;
 			warningPrompt.ShowPrompt();
 			promptShown = true;
 		}
 
-		private void OnContinueClicked()
-		{
-			PlayerPrefs.SetInt("HasSeenFlashingLightsWarning", 1);
-			PlayerPrefs.Save();
-			// Sound and animation handled by PromptBox
-			if (warningPrompt != null)
-			{
-				warningPrompt.ConfirmPrompt(); // Plays sound and animation, then hides
-				Destroy(warningPrompt.gameObject);
-			}
-			promptShown = false;
-			ContinueToNextState();
-		}
+        private void OnContinueClicked()
+        {
+            PlayerPrefs.SetInt("HasSeenFlashingLightsWarning", 1);
+            PlayerPrefs.Save();
 
-		private void ContinueToNextState()
-		{
-			// TODO: Replace with actual next state logic
-			Debug.Log("[InitState] Transitioning to next state...");
-			// Example: PlayState.Instance.LoadScene("MainMenu");
-		}
+            // Clean up the prompt
+            if (warningPrompt != null)
+            {
+                warningPrompt.OnPromptConfirmed -= OnContinueClicked;
+                warningPrompt.HidePrompt();
 
-		public override void Update()
-		{
-			base.Update();
-			// Use PhobiaInput for modular input
-			if (promptShown && Controls.isPressed("accept"))
-			{
-				OnContinueClicked();
-			}
+                // Destroy the canvas too
+                if (warningPrompt.transform.parent != null)
+                {
+                    Destroy(warningPrompt.transform.parent.gameObject, 0.5f);
+                }
+                else
+                {
+                    Destroy(warningPrompt.gameObject, 0.5f);
+                }
 
-			if (Controls.isPressed("ui_up"))
-			{
-				warningPrompt.ConfirmPrompt();
-			}
-		}
+                warningPrompt = null;
+            }
 
-		protected override void OnDestroy()
-		{
-			base.OnDestroy();
-			if (warningPrompt != null)
-			{
-				Destroy(warningPrompt.gameObject);
-			}
-		}
-	}
+            promptShown = false;
+            ContinueToNextState();
+        }
+
+        private void ContinueToNextState()
+        {
+            // TODO: Replace with actual next state logic
+            Debug.Log("[InitState] Transitioning to next state...");
+            // Example: PlayState.Instance.LoadScene("MainMenu");
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            // The PromptBox now handles its own input, so we don't need to manually check for input here
+            // We only need to handle the case where we want to bypass the prompt for testing
+            #if UNITY_EDITOR
+            if (Controls.isPressed("debug_skip") && promptShown)
+            {
+                OnContinueClicked();
+            }
+            #endif
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (warningPrompt != null)
+            {
+                warningPrompt.OnPromptConfirmed -= OnContinueClicked;
+
+                if (warningPrompt.transform.parent != null)
+                {
+                    Destroy(warningPrompt.transform.parent.gameObject);
+                }
+                else
+                {
+                    Destroy(warningPrompt.gameObject);
+                }
+            }
+        }
+    }
 }
