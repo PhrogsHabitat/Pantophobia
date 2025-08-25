@@ -20,9 +20,6 @@ namespace Phobia.Gameplay
 
 		public string CurrentSceneId { get; private set; }
 		private MonoBehaviour _activeScene;
-
-		// NOTE: currentLevel is not used for scene loading. Consider removing or updating its usage.
-
 		private PhobiaSound _heartBeatMusic;
 		public PhobiaSound heartBeatMusic => _heartBeatMusic;
 

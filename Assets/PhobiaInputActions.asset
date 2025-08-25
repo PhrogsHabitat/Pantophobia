@@ -20,7 +20,7 @@ MonoBehaviour:
     - m_Name: Move
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 6da20e8a-1898-4e39-b663-a5e988d56973
+      m_Id: 285e5675-f72b-46ca-a89e-1c22009edc11
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -28,7 +28,7 @@ MonoBehaviour:
     - m_Name: UI/Up
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 42da1e19-e30e-421f-83f6-88cc533bccb1
+      m_Id: 0e366213-9a9e-46af-8b31-717ade37fbf3
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -36,7 +36,7 @@ MonoBehaviour:
     - m_Name: UI/Down
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 7768da88-a629-4bd2-9077-b68367e21af6
+      m_Id: f56570eb-f5b5-4e1d-b51f-08cd094d4735
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -44,7 +44,7 @@ MonoBehaviour:
     - m_Name: UI/Left
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 10dc9ce3-5ee2-4196-9028-9ea9ebd92415
+      m_Id: 15e021b7-e210-4376-94a9-ee16e2cdb88c
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -52,7 +52,7 @@ MonoBehaviour:
     - m_Name: UI/Right
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 86dce2f2-0690-4e88-a4ed-b2ad490505ef
+      m_Id: 8a63af6e-9c84-4b5b-b11b-eb84f6a4b09a
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -60,7 +60,7 @@ MonoBehaviour:
     - m_Name: Note/Up
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: bb322e6d-4be9-4040-b97f-b59e2c447271
+      m_Id: ccc16197-337c-4886-adf4-1b170120bed4
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -68,7 +68,7 @@ MonoBehaviour:
     - m_Name: Note/Down
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 2bdce07d-20ba-4f62-9cfc-f55f50401c10
+      m_Id: f9a4a5ed-71be-49ab-9297-668b0f85f457
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -76,7 +76,7 @@ MonoBehaviour:
     - m_Name: Note/Left
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: ab4b9132-26d3-405f-b290-8b285c2e716d
+      m_Id: e2ef5b24-085e-4bcd-9aec-9819176e0142
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -84,7 +84,7 @@ MonoBehaviour:
     - m_Name: Note/Right
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 72fe701b-7da4-4333-8d0c-ce8ab2e73d76
+      m_Id: 2a0493e0-8ce3-47eb-b114-a8390fc4de91
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -92,7 +92,7 @@ MonoBehaviour:
     - m_Name: Actions/Accept
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 154d7d9c-fe39-477a-a9fb-4f5f35cab9a3
+      m_Id: 6a42c4ad-04d8-4a4c-95b0-320331a7bff9
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -100,7 +100,7 @@ MonoBehaviour:
     - m_Name: Actions/Back
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: e729d499-a508-496e-9ee1-1cff06160c25
+      m_Id: 09712236-e807-436e-b43e-e4b49edc7774
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -108,7 +108,7 @@ MonoBehaviour:
     - m_Name: Actions/Pause
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 7ab42d95-2b8e-48c0-bc66-ff0f15767d4f
+      m_Id: 8dbabf59-c3a9-4c3d-889d-c3febc850a91
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -116,7 +116,7 @@ MonoBehaviour:
     - m_Name: Actions/Reset
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: dd427412-24a7-418d-bfe2-b8733c291191
+      m_Id: 4d3d1426-5b4c-424c-ad40-06b22a3720c3
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -124,14 +124,14 @@ MonoBehaviour:
     - m_Name: Movement/Move
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: 1f1c49c3-028f-4ba5-a9de-1e81a6952ef6
+      m_Id: 967bb0ab-850f-4a46-a2f1-328c90072aaf
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Bindings:
     - m_Name: 2DVector
-      m_Id: ec3e5940-84ff-4630-8d64-825e6e9cdfff
+      m_Id: 732e3fee-29b2-44b3-ada5-b0886ab83c11
       m_Path: 2DVector
       m_Interactions: 
       m_Processors: 
@@ -139,7 +139,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 4
     - m_Name: Up
-      m_Id: 97c3ecd4-3bd4-4778-841d-f90458ccbb35
+      m_Id: 06133124-dbd8-443e-a1f5-c343441ca6a3
       m_Path: <Keyboard>/w
       m_Interactions: 
       m_Processors: 
@@ -147,7 +147,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Down
-      m_Id: 37d37aeb-fd97-4d48-801e-3e915f1dc209
+      m_Id: fb1de465-0612-4f3e-b217-382d4c44649e
       m_Path: <Keyboard>/s
       m_Interactions: 
       m_Processors: 
@@ -155,7 +155,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Left
-      m_Id: 12072173-7484-4cd1-9077-f122cb2a47f2
+      m_Id: ffc51889-1b9b-4330-9cb8-c6a9adc61e44
       m_Path: <Keyboard>/a
       m_Interactions: 
       m_Processors: 
@@ -163,7 +163,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Right
-      m_Id: e4e2601b-665c-4aca-9351-b870e3c34c45
+      m_Id: 647bb0d5-a76d-41ad-a969-2f5a8466c406
       m_Path: <Keyboard>/d
       m_Interactions: 
       m_Processors: 
@@ -171,7 +171,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: 
-      m_Id: b04bd2d5-5c19-4869-894f-fe58bd6f49d5
+      m_Id: 4e6b49fe-47a2-4bfa-897d-90b3f7c47543
       m_Path: <Keyboard>/w
       m_Interactions: 
       m_Processors: 
@@ -179,7 +179,7 @@ MonoBehaviour:
       m_Action: UI/Up
       m_Flags: 0
     - m_Name: 
-      m_Id: 6e8f5daf-8faf-4e82-bb40-6838707d1313
+      m_Id: 5bbf7da5-3e24-4b3f-ae6f-f7c913a8310a
       m_Path: <Keyboard>/upArrow
       m_Interactions: 
       m_Processors: 
@@ -187,7 +187,7 @@ MonoBehaviour:
       m_Action: UI/Up
       m_Flags: 0
     - m_Name: 
-      m_Id: c1dce433-d962-42c6-8d50-bc994f2d4d44
+      m_Id: 359084c6-24bb-429c-bd55-592b1d2e98c1
       m_Path: <Keyboard>/s
       m_Interactions: 
       m_Processors: 
@@ -195,7 +195,7 @@ MonoBehaviour:
       m_Action: UI/Down
       m_Flags: 0
     - m_Name: 
-      m_Id: ec6ae3b0-577a-4492-8fe1-f0dba7ebf110
+      m_Id: d453eade-d108-42a5-8cd6-9d248b3644d3
       m_Path: <Keyboard>/downArrow
       m_Interactions: 
       m_Processors: 
@@ -203,7 +203,7 @@ MonoBehaviour:
       m_Action: UI/Down
       m_Flags: 0
     - m_Name: 
-      m_Id: 039a8d0f-d895-4bce-aac8-4d67dc8e8ec1
+      m_Id: 31163485-9319-4e8f-ac05-244d2d532b02
       m_Path: <Keyboard>/a
       m_Interactions: 
       m_Processors: 
@@ -211,7 +211,7 @@ MonoBehaviour:
       m_Action: UI/Left
       m_Flags: 0
     - m_Name: 
-      m_Id: e0d7eb87-2372-42da-ac73-210e1bdcbaf1
+      m_Id: 9bdceffb-adb5-4c15-8f83-84d45c347aeb
       m_Path: <Keyboard>/leftArrow
       m_Interactions: 
       m_Processors: 
@@ -219,7 +219,7 @@ MonoBehaviour:
       m_Action: UI/Left
       m_Flags: 0
     - m_Name: 
-      m_Id: 250b2399-eb39-4d82-837f-47ddcb5f0395
+      m_Id: edf1d77c-9884-4813-9004-539c8a22ec4a
       m_Path: <Keyboard>/d
       m_Interactions: 
       m_Processors: 
@@ -227,7 +227,7 @@ MonoBehaviour:
       m_Action: UI/Right
       m_Flags: 0
     - m_Name: 
-      m_Id: 584aae24-be24-41df-81cf-d6ec92bde601
+      m_Id: 52a7af7a-b304-49a8-86b9-8a10f1f00c29
       m_Path: <Keyboard>/rightArrow
       m_Interactions: 
       m_Processors: 
@@ -235,7 +235,7 @@ MonoBehaviour:
       m_Action: UI/Right
       m_Flags: 0
     - m_Name: 
-      m_Id: 881f3374-3580-4b3f-a144-9e20f8cfe4d4
+      m_Id: 47939a11-c925-49cd-adf5-9bd5c8639340
       m_Path: <Keyboard>/upArrow
       m_Interactions: 
       m_Processors: 
@@ -243,7 +243,7 @@ MonoBehaviour:
       m_Action: Note/Up
       m_Flags: 0
     - m_Name: 
-      m_Id: 5e1f669d-b46c-43a7-93ec-da96dab1b3a9
+      m_Id: cb59292b-2463-44df-8ac4-99ff7a64e652
       m_Path: <Keyboard>/w
       m_Interactions: 
       m_Processors: 
@@ -251,7 +251,7 @@ MonoBehaviour:
       m_Action: Note/Up
       m_Flags: 0
     - m_Name: 
-      m_Id: f3a75051-f458-4da0-ac8b-247a3e179161
+      m_Id: ebd1c605-0e71-4c6f-b5b0-7d025f612914
       m_Path: <Keyboard>/downArrow
       m_Interactions: 
       m_Processors: 
@@ -259,7 +259,7 @@ MonoBehaviour:
       m_Action: Note/Down
       m_Flags: 0
     - m_Name: 
-      m_Id: 1cce18a6-2a1b-432f-9fe6-96c8a1710d2d
+      m_Id: bdc5ba3e-ad87-45fb-9175-ca34f7c5d2ca
       m_Path: <Keyboard>/s
       m_Interactions: 
       m_Processors: 
@@ -267,7 +267,7 @@ MonoBehaviour:
       m_Action: Note/Down
       m_Flags: 0
     - m_Name: 
-      m_Id: 951560b8-834a-46ee-b74a-d623a53134af
+      m_Id: 62c56933-d449-44f6-bdcb-bf33f572be34
       m_Path: <Keyboard>/leftArrow
       m_Interactions: 
       m_Processors: 
@@ -275,7 +275,7 @@ MonoBehaviour:
       m_Action: Note/Left
       m_Flags: 0
     - m_Name: 
-      m_Id: 8cea57e7-81fa-4ffa-9978-e2c7aa701085
+      m_Id: 08b839b1-a5a3-46c8-ad54-7e4afafb74f0
       m_Path: <Keyboard>/a
       m_Interactions: 
       m_Processors: 
@@ -283,7 +283,7 @@ MonoBehaviour:
       m_Action: Note/Left
       m_Flags: 0
     - m_Name: 
-      m_Id: 95f1695e-1579-43e1-910a-79fa8a4e3584
+      m_Id: 30f02f9a-8194-456d-ba1f-c7ecb914b41e
       m_Path: <Keyboard>/rightArrow
       m_Interactions: 
       m_Processors: 
@@ -291,7 +291,7 @@ MonoBehaviour:
       m_Action: Note/Right
       m_Flags: 0
     - m_Name: 
-      m_Id: f7ae75b3-94b5-4b4b-bb36-a1e65888b489
+      m_Id: b42a6852-e379-447c-9779-1e867c001b3f
       m_Path: <Keyboard>/d
       m_Interactions: 
       m_Processors: 
@@ -299,7 +299,7 @@ MonoBehaviour:
       m_Action: Note/Right
       m_Flags: 0
     - m_Name: 
-      m_Id: 3270b1d8-2a8e-47b1-a572-46b3e9ff4717
+      m_Id: 7918befc-9f92-4d46-9bab-bbb11771a3a7
       m_Path: <Keyboard>/enter
       m_Interactions: 
       m_Processors: 
@@ -307,7 +307,7 @@ MonoBehaviour:
       m_Action: Actions/Accept
       m_Flags: 0
     - m_Name: 
-      m_Id: ee94df00-d532-4f83-b604-499f1f8f6287
+      m_Id: 81c14e73-89ec-4591-a487-ebdf1ce10774
       m_Path: <Keyboard>/space
       m_Interactions: 
       m_Processors: 
@@ -315,7 +315,7 @@ MonoBehaviour:
       m_Action: Actions/Accept
       m_Flags: 0
     - m_Name: 
-      m_Id: 449c8025-55bb-4630-9112-e6b6d73ddd99
+      m_Id: f36951da-ea3a-4aa8-ab4e-7bc96486b8da
       m_Path: <Keyboard>/z
       m_Interactions: 
       m_Processors: 
@@ -323,7 +323,7 @@ MonoBehaviour:
       m_Action: Actions/Accept
       m_Flags: 0
     - m_Name: 
-      m_Id: 9b9dc90a-cc59-4664-b0b4-e0dc504b7719
+      m_Id: 0068b332-d8ab-4e97-9d76-0e6cc60c2281
       m_Path: <Keyboard>/escape
       m_Interactions: 
       m_Processors: 
@@ -331,7 +331,7 @@ MonoBehaviour:
       m_Action: Actions/Back
       m_Flags: 0
     - m_Name: 
-      m_Id: 0aef2306-3889-46c3-b44b-0be93c103073
+      m_Id: cec89f43-244b-4d50-8cb6-2a75e75cf7ad
       m_Path: <Keyboard>/x
       m_Interactions: 
       m_Processors: 
@@ -339,7 +339,7 @@ MonoBehaviour:
       m_Action: Actions/Back
       m_Flags: 0
     - m_Name: 
-      m_Id: b30a4d34-5901-414a-a7aa-9fca4a315edb
+      m_Id: 54c02d64-ae1e-4925-b898-6db8168ec486
       m_Path: <Keyboard>/escape
       m_Interactions: 
       m_Processors: 
@@ -347,7 +347,7 @@ MonoBehaviour:
       m_Action: Actions/Pause
       m_Flags: 0
     - m_Name: 
-      m_Id: fe30aff5-f09b-4804-870c-dd9cc80df9f3
+      m_Id: bda4ea1b-fc2e-49fb-a10b-fe983ff96fa0
       m_Path: <Keyboard>/p
       m_Interactions: 
       m_Processors: 
@@ -355,7 +355,7 @@ MonoBehaviour:
       m_Action: Actions/Pause
       m_Flags: 0
     - m_Name: 
-      m_Id: 47397ee7-1559-4a87-a4dc-89b757e29255
+      m_Id: 16347a94-a778-4a04-837d-0825bf95f7ee
       m_Path: <Keyboard>/r
       m_Interactions: 
       m_Processors: 
@@ -363,7 +363,7 @@ MonoBehaviour:
       m_Action: Actions/Reset
       m_Flags: 0
     - m_Name: 2DVector
-      m_Id: 67848fb9-5c93-47bb-a3b1-bbc9409ebd6c
+      m_Id: 7bcf4205-cb9c-4423-8815-0368bb821bcc
       m_Path: 2DVector
       m_Interactions: 
       m_Processors: 
@@ -371,7 +371,7 @@ MonoBehaviour:
       m_Action: Movement/Move
       m_Flags: 4
     - m_Name: Up
-      m_Id: b53a377f-11bd-46e6-acd2-26e74bdca1c7
+      m_Id: a3562db3-34a8-40b9-af7e-baccaf5d9f0e
       m_Path: <Keyboard>/w
       m_Interactions: 
       m_Processors: 
@@ -379,7 +379,7 @@ MonoBehaviour:
       m_Action: Movement/Move
       m_Flags: 8
     - m_Name: Down
-      m_Id: 20fc77c3-5562-44a2-b039-be4bd4e65670
+      m_Id: 66f38cbd-83f1-4140-8a89-027b4daf086d
       m_Path: <Keyboard>/s
       m_Interactions: 
       m_Processors: 
@@ -387,7 +387,7 @@ MonoBehaviour:
       m_Action: Movement/Move
       m_Flags: 8
     - m_Name: Left
-      m_Id: 18d919a7-f2a8-4f28-9676-8410a7a2b764
+      m_Id: 0a435a4f-a5ea-4503-98c4-7b12a6fa28bc
       m_Path: <Keyboard>/a
       m_Interactions: 
       m_Processors: 
@@ -395,7 +395,7 @@ MonoBehaviour:
       m_Action: Movement/Move
       m_Flags: 8
     - m_Name: Right
-      m_Id: f2dbf499-bae5-4d90-b334-3323adaec12f
+      m_Id: 5f4782af-92c4-4166-be1a-fa3071787df0
       m_Path: <Keyboard>/d
       m_Interactions: 
       m_Processors: 

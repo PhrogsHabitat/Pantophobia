@@ -41,59 +41,79 @@ namespace Phobia.ui.Menu.Init
         }
 
         private void ShowWarningPrompt()
-		{
-			// Create a dedicated canvas for the prompt
-			GameObject canvasObj = new GameObject("PromptCanvas");
-			Canvas canvas = canvasObj.AddComponent<Canvas>();
-			canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-			canvas.sortingOrder = 100; // High sorting order to ensure it's on top
+        {
+            // Create a dedicated canvas for the prompt
+            GameObject canvasObj = new GameObject("PromptCanvas");
+            Canvas canvas = canvasObj.AddComponent<Canvas>();
 
-			CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
-			scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-			scaler.referenceResolution = new Vector2(1920, 1080);
-			scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-			scaler.matchWidthOrHeight = 0.5f;
+            // Use the PhobiaCamera from PlayState
+            var phobiaCamera = PlayState.Instance?.mainCamera;
+            if (phobiaCamera != null)
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = phobiaCamera;
+                canvas.planeDistance = 100; // Increased for better visibility
+            }
+            else
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
 
-			canvasObj.AddComponent<GraphicRaycaster>();
+            canvas.sortingOrder = 100; // High sorting order to ensure it's on top
 
-			Vector2 promptSize = new Vector2(800, 300);
+            CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5f;
 
-			warningPrompt = PromptBox.CreatePromptBox(
-				canvas.transform,
-				"WARNING: This game contains flashing lights and visual effects that may trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.",
-				PromptBox.PromptType.Warning,
-				promptSize
-			);
+            canvasObj.AddComponent<GraphicRaycaster>();
 
-			// Center the prompt (PromptBox handles its own scaling/animation now)
-			if (warningPrompt != null)
-			{
-				RectTransform rect = warningPrompt.GetComponent<RectTransform>();
-				if (rect != null)
-				{
-					rect.anchorMin = new Vector2(0.5f, 0.5f);
-					rect.anchorMax = new Vector2(0.5f, 0.5f);
-					rect.pivot = new Vector2(0.5f, 0.5f);
-					rect.anchoredPosition = Vector2.zero;
-					rect.sizeDelta = promptSize;
-					// rect.localScale = Vector3.one * 140.5f; // No longer needed if PromptBox handles scaling
+            // Set the canvas to cover the entire screen
+            var canvasRect = canvasObj.GetComponent<RectTransform>();
+            canvasRect.anchorMin = Vector2.zero;
+            canvasRect.anchorMax = Vector2.one;
+            canvasRect.sizeDelta = Vector2.zero;
 
-					Debug.Log($"[InitState] PromptBox centered: scale={rect.localScale}");
-				}
-			}
+            // Create a parent object for the prompt to center it
+            GameObject promptParent = new GameObject("PromptParent");
+            promptParent.transform.SetParent(canvasObj.transform, false);
+            var parentRect = promptParent.AddComponent<RectTransform>();
+            parentRect.anchorMin = new Vector2(0.5f, 0.5f);
+            parentRect.anchorMax = new Vector2(0.5f, 0.5f);
+            parentRect.pivot = new Vector2(0.5f, 0.5f);
+            parentRect.anchoredPosition = Vector2.zero;
 
-			warningPrompt.OnPromptConfirmed += OnContinueClicked;
+            // Increased size for better visibility
+            Vector2 promptSize = new Vector2(500, 500);
 
-			// Wait a frame before showing the prompt to ensure everything is set up
-			StartCoroutine(DelayedShowPrompt());
-		}
+            warningPrompt = PromptBox.CreatePromptBox(
+                promptParent.transform,
+                "WARNING: This game contains flashing lights and visual effects that may trigger seizures for people with photosensitive epilepsy. Viewer discretion is advised.",
+                PromptBox.PromptType.Warning,
+                promptSize
+            );
 
-		private IEnumerator DelayedShowPrompt()
-		{
-			yield return null;
-			warningPrompt.ShowPrompt();
-			promptShown = true;
-		}
+            // Additional text configuration
+            if (warningPrompt != null && warningPrompt.messageText != null)
+            {
+                warningPrompt.messageText.fontSize = 1;
+                warningPrompt.messageText.color = Color.yellow;
+                warningPrompt.messageText.fontStyle = FontStyle.Bold;
+            }
+
+            warningPrompt.OnPromptConfirmed += OnContinueClicked;
+
+            // Wait a frame before showing the prompt to ensure everything is set up
+            StartCoroutine(DelayedShowPrompt());
+        }
+
+        private IEnumerator DelayedShowPrompt()
+        {
+            yield return null;
+            warningPrompt.ShowPrompt();
+            promptShown = true;
+        }
 
         private void OnContinueClicked()
         {
@@ -107,7 +127,12 @@ namespace Phobia.ui.Menu.Init
                 warningPrompt.HidePrompt();
 
                 // Destroy the canvas too
-                if (warningPrompt.transform.parent != null)
+                if (warningPrompt.transform.parent != null &&
+                    warningPrompt.transform.parent.parent != null)
+                {
+                    Destroy(warningPrompt.transform.parent.parent.gameObject, 0.5f);
+                }
+                else if (warningPrompt.transform.parent != null)
                 {
                     Destroy(warningPrompt.transform.parent.gameObject, 0.5f);
                 }
@@ -125,9 +150,8 @@ namespace Phobia.ui.Menu.Init
 
         private void ContinueToNextState()
         {
-            // TODO: Replace with actual next state logic
             Debug.Log("[InitState] Transitioning to next state...");
-            // Example: PlayState.Instance.LoadScene("MainMenu");
+			PlayState.Instance.LoadScene("MainMenu");
         }
 
         public override void Update()
@@ -151,7 +175,12 @@ namespace Phobia.ui.Menu.Init
             {
                 warningPrompt.OnPromptConfirmed -= OnContinueClicked;
 
-                if (warningPrompt.transform.parent != null)
+                if (warningPrompt.transform.parent != null &&
+                    warningPrompt.transform.parent.parent != null)
+                {
+                    Destroy(warningPrompt.transform.parent.parent.gameObject);
+                }
+                else if (warningPrompt.transform.parent != null)
                 {
                     Destroy(warningPrompt.transform.parent.gameObject);
                 }

@@ -10,333 +10,363 @@ using UnityEditor;
 
 namespace Phobia.Graphics
 {
-    /// <summary>
-    /// Enhanced sprite management system with runtime configuration and caching
-    /// Handles texture loading, animations, and visual effects with swag efficiency
-    /// </summary>
-    [RequireComponent(typeof(SpriteRenderer))]
-    public class PhobiaSprite : MonoBehaviour
-    {
-        #region Configuration Data
+	/// <summary>
+	/// Enhanced sprite management system with runtime configuration and caching
+	/// Handles texture loading, animations, and visual effects with swag efficiency
+	/// </summary>
+	[RequireComponent(typeof(SpriteRenderer))]
+	public class PhobiaSprite : MonoBehaviour
+	{
+		#region Configuration Data
 
-        /// <summary>
-        /// Configuration for PhobiaSprite instances - runtime configurable like a boss
-        /// </summary>
-        [System.Serializable]
-        public class SpriteConfig
-        {
-            [Header("Basic Settings")]
-            public bool enableCaching = true;
-            public bool autoDestroy = false;
-            public float defaultAlpha = 1f;
-            public Color tintColor = Color.white;
+		/// <summary>
+		/// Configuration for PhobiaSprite instances - runtime configurable like a boss
+		/// </summary>
+		[System.Serializable]
+		public class SpriteConfig
+		{
+			[Header("Basic Settings")]
+			public bool enableCaching = true;
+			public bool autoDestroy = false;
+			public float defaultAlpha = 1f;
+			public Color tintColor = Color.white;
 
-            [Header("Animation Settings")]
-            public bool enableAnimations = true;
-            public float animationSpeed = 1f;
-            public bool loopAnimations = true;
+			[Header("Animation Settings")]
+			public bool enableAnimations = true;
+			public float animationSpeed = 1f;
+			public bool loopAnimations = true;
 
-            [Header("Effects")]
-            public bool enableFading = true;
-            public float fadeSpeed = 1f;
-            public bool enableColorTweening = true;
+			[Header("Effects")]
+			public bool enableFading = true;
+			public float fadeSpeed = 1f;
+			public bool enableColorTweening = true;
 
-            [Header("Performance")]
-            public int maxCacheSize = 100;
-            public bool useObjectPooling = false;
+			[Header("Performance")]
+			public int maxCacheSize = 100;
+			public bool useObjectPooling = false;
 
-            /// <summary>
-            /// Creates default config that doesn't suck
-            /// </summary>
-            public static SpriteConfig CreateDefault()
-            {
-                return new SpriteConfig();
-            }
+			/// <summary>
+			/// Creates default config that doesn't suck
+			/// </summary>
+			public static SpriteConfig CreateDefault()
+			{
+				return new SpriteConfig();
+			}
 
-            /// <summary>
-            /// Creates config optimized for UI elements
-            /// </summary>
-            public static SpriteConfig CreateUIConfig()
-            {
-                return new SpriteConfig
-                {
-                    enableAnimations = false,
-                    enableFading = true,
-                    fadeSpeed = 2f,
-                    useObjectPooling = true
-                };
-            }
+			/// <summary>
+			/// Creates config optimized for UI elements
+			/// </summary>
+			public static SpriteConfig CreateUIConfig()
+			{
+				return new SpriteConfig
+				{
+					enableAnimations = false,
+					enableFading = true,
+					fadeSpeed = 2f,
+					useObjectPooling = true
+				};
+			}
 
-            /// <summary>
-            /// Creates config for animated sprites that need to be smooth
-            /// </summary>
-            public static SpriteConfig CreateAnimatedConfig()
-            {
-                return new SpriteConfig
-                {
-                    enableAnimations = true,
-                    animationSpeed = 1f,
-                    loopAnimations = true,
-                    enableCaching = true
-                };
-            }
-        }
+			/// <summary>
+			/// Creates config for animated sprites that need to be smooth
+			/// </summary>
+			public static SpriteConfig CreateAnimatedConfig()
+			{
+				return new SpriteConfig
+				{
+					enableAnimations = true,
+					animationSpeed = 1f,
+					loopAnimations = true,
+					enableCaching = true
+				};
+			}
+		}
 
-        #endregion
+		#endregion
 
-        #region Static Cache System
+		#region Static Cache System
 
-        // Cached textures and atlases - Unity handles memory but we handle the smart shit
-        private static Dictionary<string, Sprite> _cachedSprites = new Dictionary<string, Sprite>();
-        private static Dictionary<string, SpriteAtlas> _cachedAtlases = new Dictionary<string, SpriteAtlas>();
-        private static Dictionary<Color, Sprite> _solidColorSprites = new Dictionary<Color, Sprite>();
-        private static Dictionary<string, bool> _animationStates = new Dictionary<string, bool>();
+		// Cached textures and atlases - Unity handles memory but we handle the smart shit
+		private static Dictionary<string, Sprite> _cachedSprites = new Dictionary<string, Sprite>();
+		private static Dictionary<string, SpriteAtlas> _cachedAtlases = new Dictionary<string, SpriteAtlas>();
+		private static Dictionary<Color, Sprite> _solidColorSprites = new Dictionary<Color, Sprite>();
+		private static Dictionary<string, bool> _animationStates = new Dictionary<string, bool>();
 
-        // Performance tracking
-        private static int _cacheHits = 0;
-        private static int _cacheMisses = 0;
+		// Performance tracking
+		private static int _cacheHits = 0;
+		private static int _cacheMisses = 0;
 
-        /// <summary>
-        /// Clear all cached sprites - useful for memory management
-        /// </summary>
-        public static void ClearCache()
-        {
-            _cachedSprites.Clear();
-            _cachedAtlases.Clear();
-            // Keep solid colors cuz they're tiny and useful
-            Debug.Log($"[PhobiaSprite] Cache cleared. Stats - Hits: {_cacheHits}, Misses: {_cacheMisses}");
-        }
+		/// <summary>
+		/// Clear all cached sprites - useful for memory management
+		/// </summary>
+		public static void ClearCache()
+		{
+			_cachedSprites.Clear();
+			_cachedAtlases.Clear();
+			// Keep solid colors cuz they're tiny and useful
+			Debug.Log($"[PhobiaSprite] Cache cleared. Stats - Hits: {_cacheHits}, Misses: {_cacheMisses}");
+		}
 
-        /// <summary>
-        /// Get cache performance stats because we're nerds
-        /// </summary>
-        public static (int hits, int misses, float hitRate) GetCacheStats()
-        {
-            float hitRate = _cacheHits + _cacheMisses > 0 ? (float)_cacheHits / (_cacheHits + _cacheMisses) : 0f;
-            return (_cacheHits, _cacheMisses, hitRate);
-        }
+		/// <summary>
+		/// Get cache performance stats because we're nerds
+		/// </summary>
+		public static (int hits, int misses, float hitRate) GetCacheStats()
+		{
+			float hitRate = _cacheHits + _cacheMisses > 0 ? (float)_cacheHits / (_cacheHits + _cacheMisses) : 0f;
+			return (_cacheHits, _cacheMisses, hitRate);
+		}
 
-        #endregion
+		#endregion
 
-        #region Public Properties
+		#region Public Properties
 
-        [SerializeField] private SpriteConfig _config;
-        public SpriteConfig Config
-        {
-            get => _config ?? (_config = SpriteConfig.CreateDefault());
-            set => _config = value;
-        }
+		[SerializeField] private SpriteConfig _config;
+		public SpriteConfig Config
+		{
+			get => _config ?? (_config = SpriteConfig.CreateDefault());
+			set => _config = value;
+		}
 
-        public string CurrentAnimation { get; private set; }
-        public bool IsAnimationPlaying => _animationCoroutine != null;
-        public bool IsVisible => _renderer != null && _renderer.enabled;
-        public Color BaseColor { get; private set; } = Color.white;
+		public string CurrentAnimation { get; private set; }
+		public bool IsAnimationPlaying => _animationCoroutine != null;
+		public bool IsVisible => _renderer != null && _renderer.enabled;
+		public Color BaseColor { get; private set; } = Color.white;
 
-        #endregion
+		#endregion
 
-        #region Private Fields
+		#region Private Fields
 
-        private SpriteRenderer _renderer;
-        private Coroutine _fadeCoroutine;
-        private Coroutine _colorTweenCoroutine;
-        private Coroutine _animationCoroutine;
+		private SpriteRenderer _renderer;
+		private Coroutine _fadeCoroutine;
+		private Coroutine _colorTweenCoroutine;
+		private Coroutine _animationCoroutine;
 
-        // Sparrow animation support
-        private Dictionary<string, List<Sprite>> _sparrowAnimationFrames = new Dictionary<string, List<Sprite>>();
-        private Dictionary<string, float> _animationFrameRates = new Dictionary<string, float>();
-        private Dictionary<string, bool> _animationLoopSettings = new Dictionary<string, bool>();
-        private Dictionary<string, string> _animationAliases = new Dictionary<string, string>(); // alias -> original
-        private Dictionary<string, float> _aliasFrameRates = new Dictionary<string, float>(); // alias -> frameRate
-        private bool _sparrowSetupDone = false;
+		// Sparrow animation support
+		private Dictionary<string, List<Sprite>> _sparrowAnimationFrames = new Dictionary<string, List<Sprite>>();
+		private Dictionary<string, float> _animationFrameRates = new Dictionary<string, float>();
+		private Dictionary<string, bool> _animationLoopSettings = new Dictionary<string, bool>();
+		private Dictionary<string, string> _animationAliases = new Dictionary<string, string>(); // alias -> original
+		private Dictionary<string, float> _aliasFrameRates = new Dictionary<string, float>(); // alias -> frameRate
+		private bool _sparrowSetupDone = false;
 
-        #endregion
+		[Header("UI Scaling")]
+		[SerializeField] private bool _scaleToFit = false;
+		[SerializeField] private Vector2 _targetSize = Vector2.one;
 
-        #region Unity Lifecycle
+		public bool ScaleToFit
+		{
+			get => _scaleToFit;
+			set
+			{
+				_scaleToFit = value;
+				if (value && _renderer != null && _renderer.sprite != null)
+				{
+					ApplyScaleToFit();
+				}
+			}
+		}
 
-        private void Awake()
-        {
-            _renderer = GetComponent<SpriteRenderer>();
-            ApplyConfiguration();
-        }
+		public Vector2 TargetSize
+		{
+			get => _targetSize;
+			set
+			{
+				_targetSize = value;
+				if (_scaleToFit && _renderer != null && _renderer.sprite != null)
+				{
+					ApplyScaleToFit();
+				}
+			}
+		}
 
-        private void OnDestroy()
-        {
-            // Stop all coroutines when object is destroyed
-            if (_animationCoroutine != null)
-            {
-                StopCoroutine(_animationCoroutine);
-            }
-            if (_fadeCoroutine != null)
-            {
-                StopCoroutine(_fadeCoroutine);
-            }
-            if (_colorTweenCoroutine != null)
-            {
-                StopCoroutine(_colorTweenCoroutine);
-            }
-        }
+		#endregion
 
-        #endregion
+		#region Unity Lifecycle
 
-        #region Static Factory Methods
+		private void Awake()
+		{
+			_renderer = GetComponent<SpriteRenderer>();
+			ApplyConfiguration();
+		}
 
-        /// <summary>
-        /// Create a PhobiaSprite with texture loading
-        /// </summary>
-        public static PhobiaSprite Create(Vector3 position, string spritePath, SpriteConfig config = null)
-        {
-            GameObject go = new GameObject($"PhobiaSprite_{System.IO.Path.GetFileName(spritePath)}");
-            go.transform.position = position;
-            PhobiaSprite sprite = go.AddComponent<PhobiaSprite>();
+		private void OnDestroy()
+		{
+			// Stop all coroutines when object is destroyed
+			if (_animationCoroutine != null)
+			{
+				StopCoroutine(_animationCoroutine);
+			}
+			if (_fadeCoroutine != null)
+			{
+				StopCoroutine(_fadeCoroutine);
+			}
+			if (_colorTweenCoroutine != null)
+			{
+				StopCoroutine(_colorTweenCoroutine);
+			}
+		}
 
-            if (config != null)
-            {
-                sprite.Config = config;
-            }
+		#endregion
 
-            sprite.LoadTexture(spritePath);
-            return sprite;
-        }
+		#region Static Factory Methods
 
-        /// <summary>
-        /// Create a PhobiaSprite with Sparrow atlas - fancy shit
-        /// </summary>
-        public static PhobiaSprite CreateSparrow(Vector3 position, string atlasPath, string spriteName, SpriteConfig config = null)
-        {
-            GameObject go = new GameObject($"PhobiaSprite_{spriteName}");
-            go.transform.position = position;
-            PhobiaSprite sprite = go.AddComponent<PhobiaSprite>();
+		/// <summary>
+		/// Create a PhobiaSprite with texture loading
+		/// </summary>
+		public static PhobiaSprite Create(Vector3 position, string spritePath, SpriteConfig config = null)
+		{
+			GameObject go = new GameObject($"PhobiaSprite_{System.IO.Path.GetFileName(spritePath)}");
+			go.transform.position = position;
+			PhobiaSprite sprite = go.AddComponent<PhobiaSprite>();
 
-            if (config != null)
-            {
-                sprite.Config = config;
-            }
+			if (config != null)
+			{
+				sprite.Config = config;
+			}
 
-            sprite.LoadSparrowXML(atlasPath, spriteName);
-            return sprite;
-        }
+			sprite.LoadTexture(spritePath);
+			return sprite;
+		}
 
-        /// <summary>
-        /// Create a solid color sprite - simple but effective
-        /// </summary>
-        public static PhobiaSprite CreateSolidColor(Vector3 position, Vector2 size, Color color, SpriteConfig config = null)
-        {
-            GameObject go = new GameObject($"SolidSprite_{color}");
-            go.transform.position = position;
-            PhobiaSprite sprite = go.AddComponent<PhobiaSprite>();
+		/// <summary>
+		/// Create a PhobiaSprite with Sparrow atlas - fancy shit
+		/// </summary>
+		public static PhobiaSprite CreateSparrow(Vector3 position, string atlasPath, string spriteName, SpriteConfig config = null)
+		{
+			GameObject go = new GameObject($"PhobiaSprite_{spriteName}");
+			go.transform.position = position;
+			PhobiaSprite sprite = go.AddComponent<PhobiaSprite>();
 
-            if (config != null)
-            {
-                sprite.Config = config;
-            }
+			if (config != null)
+			{
+				sprite.Config = config;
+			}
 
-            sprite.MakeSolidColor(size, color);
-            return sprite;
-        }
+			sprite.LoadSparrowXML(atlasPath, spriteName);
+			return sprite;
+		}
 
-        #endregion
+		/// <summary>
+		/// Create a solid color sprite - simple but effective
+		/// </summary>
+		public static PhobiaSprite CreateSolidColor(Vector3 position, Vector2 size, Color color, SpriteConfig config = null)
+		{
+			GameObject go = new GameObject($"SolidSprite_{color}");
+			go.transform.position = position;
+			PhobiaSprite sprite = go.AddComponent<PhobiaSprite>();
 
-        #region Configuration Management
+			if (config != null)
+			{
+				sprite.Config = config;
+			}
 
-        /// <summary>
-        /// Apply current configuration to the sprite
-        /// </summary>
-        public void ApplyConfiguration()
-        {
-            if (_config == null)
-            {
-                return;
-            }
+			sprite.MakeSolidColor(size, color);
+			return sprite;
+		}
 
-            if (_renderer != null)
-            {
-                Color color = _config.tintColor;
-                color.a = _config.defaultAlpha;
-                _renderer.color = color;
-                BaseColor = color;
-            }
-        }
+		#endregion
 
-        /// <summary>
-        /// Update configuration at runtime - because flexibility is king
-        /// </summary>
-        public void UpdateConfig(SpriteConfig newConfig)
-        {
-            _config = newConfig;
-            ApplyConfiguration();
-        }
+		#region Configuration Management
 
-        #endregion
+		/// <summary>
+		/// Apply current configuration to the sprite
+		/// </summary>
+		public void ApplyConfiguration()
+		{
+			if (_config == null)
+			{
+				return;
+			}
 
-        #region Texture Loading
+			if (_renderer != null)
+			{
+				Color color = _config.tintColor;
+				color.a = _config.defaultAlpha;
+				_renderer.color = color;
+				BaseColor = color;
+			}
+		}
 
-        /// <summary>
-        /// Load texture from Resources with smart caching
-        /// </summary>
-        public void LoadTexture(string spritePath)
-        {
-            if (string.IsNullOrEmpty(spritePath))
-            {
-                Debug.LogError("[PhobiaSprite] Sprite path is null or empty");
-                return;
-            }
+		/// <summary>
+		/// Update configuration at runtime - because flexibility is king
+		/// </summary>
+		public void UpdateConfig(SpriteConfig newConfig)
+		{
+			_config = newConfig;
+			ApplyConfiguration();
+		}
 
-            if (_config.enableCaching && _cachedSprites.TryGetValue(spritePath, out Sprite cachedSprite))
-            {
-                _renderer.sprite = cachedSprite;
-                _cacheHits++;
-                return;
-            }
+		#endregion
 
-            Sprite loadedSprite = Resources.Load<Sprite>(spritePath);
-            if (loadedSprite != null)
-            {
-                // Cache the sprite if caching is enabled
-                if (_config.enableCaching && _cachedSprites.Count < _config.maxCacheSize)
-                {
-                    _cachedSprites[spritePath] = loadedSprite;
-                }
+		#region Texture Loading
 
-                _renderer.sprite = loadedSprite;
-                _cacheMisses++;
-            }
-            else
-            {
-                Debug.LogError($"[PhobiaSprite] Sprite not found: {spritePath}");
-            }
-        }
+		/// <summary>
+		/// Load texture from Resources with smart caching
+		/// </summary>
+		public void LoadTexture(string spritePath)
+		{
+			if (string.IsNullOrEmpty(spritePath))
+			{
+				Debug.LogError("[PhobiaSprite] Sprite path is null or empty");
+				return;
+			}
 
-        /// <summary>
-        /// Load sprite from Sparrow atlas and auto-setup animations from XML
-        /// </summary>
-        public void LoadSparrowXML(string resourcePath, string spriteName)
-        {
-            if (string.IsNullOrEmpty(resourcePath) || string.IsNullOrEmpty(spriteName))
-            {
-                Debug.LogError("[PhobiaSprite] Resource path or sprite name is null/empty");
-                return;
-            }
+			if (_config.enableCaching && _cachedSprites.TryGetValue(spritePath, out Sprite cachedSprite))
+			{
+				_renderer.sprite = cachedSprite;
+				_cacheHits++;
+				return;
+			}
 
-            // Load the texture
-            Texture2D texture = Resources.Load<Texture2D>(resourcePath);
-            if (texture == null)
-            {
-                Debug.LogError($"[PhobiaSprite] Texture not found: {resourcePath}");
-                return;
-            }
+			Sprite loadedSprite = Resources.Load<Sprite>(spritePath);
+			if (loadedSprite != null)
+			{
+				// Cache the sprite if caching is enabled
+				if (_config.enableCaching && _cachedSprites.Count < _config.maxCacheSize)
+				{
+					_cachedSprites[spritePath] = loadedSprite;
+				}
 
-            // Load the XML - assuming it has the same name as the texture but with .xml extension
-            TextAsset xmlAsset = Resources.Load<TextAsset>(resourcePath);
-            if (xmlAsset == null)
-            {
-                Debug.LogWarning($"[PhobiaSprite] Sparrow XML not found: {resourcePath}");
-                return;
-            }
+				_renderer.sprite = loadedSprite;
+				_cacheMisses++;
+			}
+			else
+			{
+				Debug.LogError($"[PhobiaSprite] Sprite not found: {spritePath}");
+			}
+		}
 
-            ParseSparrowXML(xmlAsset.text, texture, spriteName);
-        }
+		/// <summary>
+		/// Load sprite from Sparrow atlas and auto-setup animations from XML
+		/// </summary>
+		public void LoadSparrowXML(string resourcePath, string spriteName)
+		{
+			if (string.IsNullOrEmpty(resourcePath) || string.IsNullOrEmpty(spriteName))
+			{
+				Debug.LogError("[PhobiaSprite] Resource path or sprite name is null/empty");
+				return;
+			}
 
-        /// <summary>
+			// Load the texture
+			Texture2D texture = Resources.Load<Texture2D>(resourcePath);
+			if (texture == null)
+			{
+				Debug.LogError($"[PhobiaSprite] Texture not found: {resourcePath}");
+				return;
+			}
+
+			// Load the XML - assuming it has the same name as the texture but with .xml extension
+			TextAsset xmlAsset = Resources.Load<TextAsset>(resourcePath);
+			if (xmlAsset == null)
+			{
+				Debug.LogWarning($"[PhobiaSprite] Sparrow XML not found: {resourcePath}");
+				return;
+			}
+
+			ParseSparrowXML(xmlAsset.text, texture, spriteName);
+		}
+
+		/// <summary>
 		/// Parse Sparrow XML and auto-create AnimationClips for each animation
 		/// </summary>
 		private void ParseSparrowXML(string xmlText, Texture2D texture, string defaultSpriteName)
@@ -456,37 +486,37 @@ namespace Phobia.Graphics
 			}
 		}
 
-        /// <summary>
-        /// Create a solid color sprite - simple but effective as hell
-        /// </summary>
-        public void MakeSolidColor(Vector2 size, Color color)
-        {
-            if (!_solidColorSprites.TryGetValue(color, out Sprite solidSprite))
-            {
-                // Create tiny 2x2 texture (efficient for scaling)
-                Texture2D tex = new Texture2D(2, 2);
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        tex.SetPixel(x, y, color);
-                    }
-                }
-                tex.Apply();
-                solidSprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), Vector2.one * 0.5f);
-                _solidColorSprites[color] = solidSprite;
-            }
+		/// <summary>
+		/// Create a solid color sprite - simple but effective as hell
+		/// </summary>
+		public void MakeSolidColor(Vector2 size, Color color)
+		{
+			if (!_solidColorSprites.TryGetValue(color, out Sprite solidSprite))
+			{
+				// Create tiny 2x2 texture (efficient for scaling)
+				Texture2D tex = new Texture2D(2, 2);
+				for (int x = 0; x < 2; x++)
+				{
+					for (int y = 0; y < 2; y++)
+					{
+						tex.SetPixel(x, y, color);
+					}
+				}
+				tex.Apply();
+				solidSprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), Vector2.one * 0.5f);
+				_solidColorSprites[color] = solidSprite;
+			}
 
-            _renderer.sprite = solidSprite;
-            transform.localScale = new Vector3(size.x / 2, size.y / 2, 1);
-            BaseColor = color;
-        }
+			_renderer.sprite = solidSprite;
+			transform.localScale = new Vector3(size.x / 2, size.y / 2, 1);
+			BaseColor = color;
+		}
 
-        #endregion
+		#endregion
 
-        #region Animation System
+		#region Animation System
 
-        /// <summary>
+		/// <summary>
 		/// Play animation by name
 		/// </summary>
 		public void PlayAnimation(string animationName)
@@ -541,336 +571,414 @@ namespace Phobia.Graphics
 			}
 		}
 
-        /// <summary>
-        /// Animation coroutine that cycles through frames
-        /// </summary>
-        private IEnumerator PlayAnimationRoutine(string animationName)
-        {
-            var frames = _sparrowAnimationFrames[animationName];
-            int currentFrame = 0;
+		/// <summary>
+		/// Animation coroutine that cycles through frames
+		/// </summary>
+		private IEnumerator PlayAnimationRoutine(string animationName)
+		{
+			var frames = _sparrowAnimationFrames[animationName];
+			int currentFrame = 0;
 
-            // Get frame rate for this animation (default to 24 FPS if not specified)
-            float frameRate = _animationFrameRates.ContainsKey(animationName) ?
-                _animationFrameRates[animationName] * _config.animationSpeed : 24f * _config.animationSpeed;
+			// Get frame rate for this animation (default to 24 FPS if not specified)
+			float frameRate = _animationFrameRates.ContainsKey(animationName) ?
+				_animationFrameRates[animationName] * _config.animationSpeed : 24f * _config.animationSpeed;
 
-            float frameDelay = 1f / frameRate;
+			float frameDelay = 1f / frameRate;
 
-            // Use per-animation loop setting if available
-            bool shouldLoop = GetAnimationLoop(animationName);
+			// Use per-animation loop setting if available
+			bool shouldLoop = GetAnimationLoop(animationName);
 
-            Debug.Log($"[PhobiaSprite] Playing animation '{animationName}' at {frameRate} FPS with {frames.Count} frames, loop={shouldLoop}");
+			Debug.Log($"[PhobiaSprite] Playing animation '{animationName}' at {frameRate} FPS with {frames.Count} frames, loop={shouldLoop}");
 
-            while (frames.Count > 0)
-            {
-                _renderer.sprite = frames[currentFrame];
-                currentFrame = (currentFrame + 1) % frames.Count;
+			while (frames.Count > 0)
+			{
+				_renderer.sprite = frames[currentFrame];
+				currentFrame = (currentFrame + 1) % frames.Count;
 
-                // If not looping and we're at the last frame, break
-                if (!shouldLoop && currentFrame == 0)
-                {
-                    break;
-                }
+				// If not looping and we're at the last frame, break
+				if (!shouldLoop && currentFrame == 0)
+				{
+					break;
+				}
 
-                yield return new WaitForSeconds(frameDelay);
-            }
+				yield return new WaitForSeconds(frameDelay);
+			}
 
-            _animationCoroutine = null;
-            Debug.Log($"[PhobiaSprite] Animation '{animationName}' finished playing");
-        }
+			_animationCoroutine = null;
+			Debug.Log($"[PhobiaSprite] Animation '{animationName}' finished playing");
+		}
 
-        /// <summary>
-        /// Set custom frame rate for an animation
-        /// </summary>
-        public void SetAnimationFrameRate(string animationName, float frameRate)
-        {
-            if (_sparrowAnimationFrames.ContainsKey(animationName))
-            {
-                _animationFrameRates[animationName] = frameRate;
-            }
-            else
-            {
-                Debug.LogWarning($"[PhobiaSprite] Cannot set frame rate for unknown animation: {animationName}");
-            }
-        }
+		/// <summary>
+		/// Set custom frame rate for an animation
+		/// </summary>
+		public void SetAnimationFrameRate(string animationName, float frameRate)
+		{
+			if (_sparrowAnimationFrames.ContainsKey(animationName))
+			{
+				_animationFrameRates[animationName] = frameRate;
+			}
+			else
+			{
+				Debug.LogWarning($"[PhobiaSprite] Cannot set frame rate for unknown animation: {animationName}");
+			}
+		}
 
-        /// <summary>
-        /// Set whether a specific animation should loop.
-        /// </summary>
-        public void SetAnimationLoop(string animationName, bool shouldLoop)
-        {
-            _animationLoopSettings[animationName] = shouldLoop;
-        }
+		/// <summary>
+		/// Set whether a specific animation should loop.
+		/// </summary>
+		public void SetAnimationLoop(string animationName, bool shouldLoop)
+		{
+			_animationLoopSettings[animationName] = shouldLoop;
+		}
 
-        /// <summary>
-        /// Get whether a specific animation should loop. Returns config default if not set.
-        /// </summary>
-        public bool GetAnimationLoop(string animationName)
-        {
-            if (_animationLoopSettings.TryGetValue(animationName, out bool loop))
+		/// <summary>
+		/// Get whether a specific animation should loop. Returns config default if not set.
+		/// </summary>
+		public bool GetAnimationLoop(string animationName)
+		{
+			if (_animationLoopSettings.TryGetValue(animationName, out bool loop))
 			{
 				return loop;
 			}
 
 			return Config.loopAnimations;
-        }
+		}
 
-        /// <summary>
-        /// Stop current animation
-        /// </summary>
-        public void StopAnimation()
-        {
-            if (_animationCoroutine != null)
-            {
-                StopCoroutine(_animationCoroutine);
-                _animationCoroutine = null;
-            }
-        }
+		/// <summary>
+		/// Stop current animation
+		/// </summary>
+		public void StopAnimation()
+		{
+			if (_animationCoroutine != null)
+			{
+				StopCoroutine(_animationCoroutine);
+				_animationCoroutine = null;
+			}
+		}
 
-        /// <summary>
-        /// Register an animation alias with a custom frame rate.
-        /// </summary>
-        public void AddAnim(string originalAnim, string alias, float frameRate)
-        {
-            if (!_sparrowAnimationFrames.ContainsKey(originalAnim))
-            {
-                Debug.LogWarning($"[PhobiaSprite] Cannot alias unknown animation: {originalAnim}");
-                return;
-            }
-            _animationAliases[alias] = originalAnim;
-            _aliasFrameRates[alias] = frameRate;
-        }
+		/// <summary>
+		/// Register an animation alias with a custom frame rate.
+		/// </summary>
+		public void AddAnim(string originalAnim, string alias, float frameRate)
+		{
+			if (!_sparrowAnimationFrames.ContainsKey(originalAnim))
+			{
+				Debug.LogWarning($"[PhobiaSprite] Cannot alias unknown animation: {originalAnim}");
+				return;
+			}
+			_animationAliases[alias] = originalAnim;
+			_aliasFrameRates[alias] = frameRate;
+		}
 
-        /// <summary>
-        /// Play an animation by alias or original name, with explicit looping and force options.
-        /// </summary>
-        public void PlayAnim(string aliasOrName, bool shouldLoop = true, bool force = false)
-        {
-            string animName = aliasOrName;
-            if (_animationAliases.TryGetValue(aliasOrName, out var mapped))
+		/// <summary>
+		/// Play an animation by alias or original name, with explicit looping and force options.
+		/// </summary>
+		public void PlayAnim(string aliasOrName, bool shouldLoop = true, bool force = false)
+		{
+			string animName = aliasOrName;
+			if (_animationAliases.TryGetValue(aliasOrName, out var mapped))
 			{
 				animName = mapped;
 			}
 
 			if (!_sparrowAnimationFrames.ContainsKey(animName))
-            {
-                Debug.LogWarning($"[PhobiaSprite] Animation '{aliasOrName}' (resolved as '{animName}') not found.");
-                return;
-            }
+			{
+				Debug.LogWarning($"[PhobiaSprite] Animation '{aliasOrName}' (resolved as '{animName}') not found.");
+				return;
+			}
 
-            // Set loop for this play only
-            _animationLoopSettings[animName] = shouldLoop;
+			// Set loop for this play only
+			_animationLoopSettings[animName] = shouldLoop;
 
-            // Set frame rate if alias has one
-            if (_aliasFrameRates.TryGetValue(aliasOrName, out float frameRate))
+			// Set frame rate if alias has one
+			if (_aliasFrameRates.TryGetValue(aliasOrName, out float frameRate))
 			{
 				_animationFrameRates[animName] = frameRate;
 			}
 
 			if (force || CurrentAnimation != animName || !IsAnimationPlaying)
-            {
-                PlayAnimation(animName);
-            }
-        }
+			{
+				PlayAnimation(animName);
+			}
+		}
+
+		#endregion
+
+		#region Visual Effects
+
+		/// <summary>
+		/// Fade out sprite
+		/// </summary>
+		public void FadeOut(float duration)
+		{
+			StartFade(0, duration);
+		}
+
+		/// <summary>
+		/// Fade in sprite
+		/// </summary>
+		public void FadeIn(float duration)
+		{
+			StartFade(1, duration);
+		}
+
+		/// <summary>
+		/// Fade to specific alpha value
+		/// </summary>
+		public void FadeTo(float targetAlpha, float duration)
+		{
+			StartFade(targetAlpha, duration);
+		}
+
+		/// <summary>
+		/// Start fade operation with proper coroutine management
+		/// </summary>
+		private void StartFade(float targetAlpha, float duration)
+		{
+			if (!_config.enableFading)
+			{
+				SetAlpha(targetAlpha);
+				return;
+			}
+
+			if (_fadeCoroutine != null)
+			{
+				StopCoroutine(_fadeCoroutine);
+			}
+
+			_fadeCoroutine = StartCoroutine(FadeRoutine(targetAlpha, duration));
+		}
+
+		/// <summary>
+		/// Fade coroutine that actually does the work
+		/// </summary>
+		private IEnumerator FadeRoutine(float targetAlpha, float duration)
+		{
+			float startAlpha = _renderer.color.a;
+			float elapsed = 0;
+
+			while (elapsed < duration)
+			{
+				elapsed += Time.deltaTime;
+				float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+				SetAlpha(newAlpha);
+				yield return null;
+			}
+
+			SetAlpha(targetAlpha);
+			_fadeCoroutine = null;
+		}
+
+		#endregion
+
+		#region Color and Visual Management
+
+		/// <summary>
+		/// Set sprite alpha value
+		/// </summary>
+		public void SetAlpha(float alpha)
+		{
+			Color c = _renderer.color;
+			c.a = Mathf.Clamp01(alpha);
+			_renderer.color = c;
+		}
+
+		/// <summary>
+		/// Set sprite color
+		/// </summary>
+		public void SetColor(Color color)
+		{
+			_renderer.color = color;
+		}
+
+		/// <summary>
+		/// Reset to base color
+		/// </summary>
+		public void ResetColor()
+		{
+			_renderer.color = BaseColor;
+		}
+
+		/// <summary>
+		/// Tween to target color over time
+		/// </summary>
+		public void TweenToColor(Color targetColor, float duration)
+		{
+			if (!_config.enableColorTweening)
+			{
+				SetColor(targetColor);
+				return;
+			}
+
+			if (_colorTweenCoroutine != null)
+			{
+				StopCoroutine(_colorTweenCoroutine);
+			}
+
+			_colorTweenCoroutine = StartCoroutine(ColorTweenRoutine(targetColor, duration));
+		}
+
+		/// <summary>
+		/// Color tween coroutine
+		/// </summary>
+		private IEnumerator ColorTweenRoutine(Color targetColor, float duration)
+		{
+			Color startColor = _renderer.color;
+			float elapsed = 0;
+
+			while (elapsed < duration)
+			{
+				elapsed += Time.deltaTime;
+				Color newColor = Color.Lerp(startColor, targetColor, elapsed / duration);
+				_renderer.color = newColor;
+				yield return null;
+			}
+
+			_renderer.color = targetColor;
+			_colorTweenCoroutine = null;
+		}
+
+		#endregion
+
+		#region Utility Methods
+
+		/// <summary>
+		/// Get screen position of sprite
+		/// </summary>
+		public Vector2 GetScreenPosition(UnityEngine.Camera camera = null)
+		{
+			if (camera == null)
+			{
+				camera = UnityEngine.Camera.main;
+			}
+
+			return camera.WorldToScreenPoint(transform.position);
+		}
+
+		/// <summary>
+		/// Clone this sprite with same configuration
+		/// </summary>
+		public PhobiaSprite Clone()
+		{
+			GameObject clone = Instantiate(gameObject);
+			clone.name = gameObject.name + "_Clone";
+			PhobiaSprite clonedSprite = clone.GetComponent<PhobiaSprite>();
+			clonedSprite.Config = _config; // Copy config
+			return clonedSprite;
+		}
+
+		/// <summary>
+		/// Add callback for when animation completes
+		/// </summary>
+		public void AddAnimationCompleteCallback(string animName, System.Action callback)
+		{
+			if (!_config.enableAnimations)
+			{
+				callback?.Invoke();
+				return;
+			}
+
+			StartCoroutine(WaitForAnimationComplete(animName, callback));
+		}
+
+		/// <summary>
+		/// Coroutine to wait for animation completion
+		/// </summary>
+		private IEnumerator WaitForAnimationComplete(string animName, System.Action callback)
+		{
+			// Wait for the specified animation to start
+			while (CurrentAnimation != animName || !IsAnimationPlaying)
+			{
+				yield return null;
+			}
+
+			// Wait for it to finish
+			while (IsAnimationPlaying && CurrentAnimation == animName)
+			{
+				yield return null;
+			}
+
+			callback?.Invoke();
+		}
+
+		/// <summary>
+		/// Scale the sprite to fit the target size while maintaining aspect ratio
+		/// </summary>
+		public void ApplyScaleToFit()
+		{
+			if (_renderer == null || _renderer.sprite == null)
+			{
+				Debug.LogWarning("[PhobiaSprite] Cannot scale to fit - no sprite or renderer");
+				return;
+			}
+
+			// Get the sprite's native size
+			Vector2 spriteSize = _renderer.sprite.bounds.size;
+
+			// Calculate the scale needed to fit the target size
+			float scaleX = _targetSize.x / spriteSize.x;
+			float scaleY = _targetSize.y / spriteSize.y;
+
+			// Use the smaller scale to maintain aspect ratio
+			float uniformScale = Mathf.Min(scaleX, scaleY);
+
+			// Apply the scale
+			transform.localScale = new Vector3(uniformScale, uniformScale, 1f);
+
+			Debug.Log($"[PhobiaSprite] Scaled to fit: spriteSize={spriteSize}, targetSize={_targetSize}, scale={uniformScale}");
+		}
+
+		/// <summary>
+		/// Scale the sprite to fill the target size (may crop)
+		/// </summary>
+		public void ApplyScaleToFill()
+		{
+			if (_renderer == null || _renderer.sprite == null)
+			{
+				Debug.LogWarning("[PhobiaSprite] Cannot scale to fill - no sprite or renderer");
+				return;
+			}
+
+			// Get the sprite's native size
+			Vector2 spriteSize = _renderer.sprite.bounds.size;
+
+			// Calculate the scale needed to fill the target size
+			float scaleX = _targetSize.x / spriteSize.x;
+			float scaleY = _targetSize.y / spriteSize.y;
+
+			// Use the larger scale to fill (may crop)
+			float uniformScale = Mathf.Max(scaleX, scaleY);
+
+			// Apply the scale
+			transform.localScale = new Vector3(uniformScale, uniformScale, 1f);
+
+			Debug.Log($"[PhobiaSprite] Scaled to fill: spriteSize={spriteSize}, targetSize={_targetSize}, scale={uniformScale}");
+		}
+
+		/// <summary>
+		/// Stretch the sprite to exactly fit the target size (may distort aspect ratio)
+		/// </summary>
+		public void ApplyStretchToFit()
+		{
+			if (_renderer == null || _renderer.sprite != null)
+			{
+				Debug.LogWarning("[PhobiaSprite] Cannot stretch to fit - no sprite or renderer");
+				return;
+			}
+
+			// Get the sprite's native size
+			Vector2 spriteSize = _renderer.sprite.bounds.size;
+
+			// Calculate the scale needed to stretch to the target size
+			float scaleX = _targetSize.x / spriteSize.x;
+			float scaleY = _targetSize.y / spriteSize.y;
+
+			// Apply non-uniform scale (will distort if aspect ratios differ)
+			transform.localScale = new Vector3(scaleX, scaleY, 1f);
+
+			Debug.Log($"[PhobiaSprite] Stretched to fit: spriteSize={spriteSize}, targetSize={_targetSize}, scale=({scaleX}, {scaleY})");
+		}
 
         #endregion
-
-        #region Visual Effects
-
-        /// <summary>
-        /// Fade out sprite
-        /// </summary>
-        public void FadeOut(float duration)
-        {
-            StartFade(0, duration);
-        }
-
-        /// <summary>
-        /// Fade in sprite
-        /// </summary>
-        public void FadeIn(float duration)
-        {
-            StartFade(1, duration);
-        }
-
-        /// <summary>
-        /// Fade to specific alpha value
-        /// </summary>
-        public void FadeTo(float targetAlpha, float duration)
-        {
-            StartFade(targetAlpha, duration);
-        }
-
-        /// <summary>
-        /// Start fade operation with proper coroutine management
-        /// </summary>
-        private void StartFade(float targetAlpha, float duration)
-        {
-            if (!_config.enableFading)
-            {
-                SetAlpha(targetAlpha);
-                return;
-            }
-
-            if (_fadeCoroutine != null)
-            {
-                StopCoroutine(_fadeCoroutine);
-            }
-
-            _fadeCoroutine = StartCoroutine(FadeRoutine(targetAlpha, duration));
-        }
-
-        /// <summary>
-        /// Fade coroutine that actually does the work
-        /// </summary>
-        private IEnumerator FadeRoutine(float targetAlpha, float duration)
-        {
-            float startAlpha = _renderer.color.a;
-            float elapsed = 0;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float newAlpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
-                SetAlpha(newAlpha);
-                yield return null;
-            }
-
-            SetAlpha(targetAlpha);
-            _fadeCoroutine = null;
-        }
-
-        #endregion
-
-        #region Color and Visual Management
-
-        /// <summary>
-        /// Set sprite alpha value
-        /// </summary>
-        public void SetAlpha(float alpha)
-        {
-            Color c = _renderer.color;
-            c.a = Mathf.Clamp01(alpha);
-            _renderer.color = c;
-        }
-
-        /// <summary>
-        /// Set sprite color
-        /// </summary>
-        public void SetColor(Color color)
-        {
-            _renderer.color = color;
-        }
-
-        /// <summary>
-        /// Reset to base color
-        /// </summary>
-        public void ResetColor()
-        {
-            _renderer.color = BaseColor;
-        }
-
-        /// <summary>
-        /// Tween to target color over time
-        /// </summary>
-        public void TweenToColor(Color targetColor, float duration)
-        {
-            if (!_config.enableColorTweening)
-            {
-                SetColor(targetColor);
-                return;
-            }
-
-            if (_colorTweenCoroutine != null)
-            {
-                StopCoroutine(_colorTweenCoroutine);
-            }
-
-            _colorTweenCoroutine = StartCoroutine(ColorTweenRoutine(targetColor, duration));
-        }
-
-        /// <summary>
-        /// Color tween coroutine
-        /// </summary>
-        private IEnumerator ColorTweenRoutine(Color targetColor, float duration)
-        {
-            Color startColor = _renderer.color;
-            float elapsed = 0;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                Color newColor = Color.Lerp(startColor, targetColor, elapsed / duration);
-                _renderer.color = newColor;
-                yield return null;
-            }
-
-            _renderer.color = targetColor;
-            _colorTweenCoroutine = null;
-        }
-
-        #endregion
-
-        #region Utility Methods
-
-        /// <summary>
-        /// Get screen position of sprite
-        /// </summary>
-        public Vector2 GetScreenPosition(UnityEngine.Camera camera = null)
-        {
-            if (camera == null)
-            {
-                camera = UnityEngine.Camera.main;
-            }
-
-            return camera.WorldToScreenPoint(transform.position);
-        }
-
-        /// <summary>
-        /// Clone this sprite with same configuration
-        /// </summary>
-        public PhobiaSprite Clone()
-        {
-            GameObject clone = Instantiate(gameObject);
-            clone.name = gameObject.name + "_Clone";
-            PhobiaSprite clonedSprite = clone.GetComponent<PhobiaSprite>();
-            clonedSprite.Config = _config; // Copy config
-            return clonedSprite;
-        }
-
-        /// <summary>
-        /// Add callback for when animation completes
-        /// </summary>
-        public void AddAnimationCompleteCallback(string animName, System.Action callback)
-        {
-            if (!_config.enableAnimations)
-            {
-                callback?.Invoke();
-                return;
-            }
-
-            StartCoroutine(WaitForAnimationComplete(animName, callback));
-        }
-
-        /// <summary>
-        /// Coroutine to wait for animation completion
-        /// </summary>
-        private IEnumerator WaitForAnimationComplete(string animName, System.Action callback)
-        {
-            // Wait for the specified animation to start
-            while (CurrentAnimation != animName || !IsAnimationPlaying)
-            {
-                yield return null;
-            }
-
-            // Wait for it to finish
-            while (IsAnimationPlaying && CurrentAnimation == animName)
-            {
-                yield return null;
-            }
-
-            callback?.Invoke();
-        }
-
-        #endregion
-    }
+	}
 }
